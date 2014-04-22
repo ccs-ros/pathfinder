@@ -1,0 +1,21 @@
+<launch>
+<!-- Manually set configure ethernet port to the following:
+	 	ip address=192.168.0.15
+	 	subnet mask=255.255.255.0
+	 	gateway=192.168.0.10 -->
+	 
+	<node pkg="urg_node" type="urg_node" name="urg_node" output="screen">
+			<param name="publish_intensity" value="false" />
+			<param name="angle_min" value="-2.2689" />
+			<param name="angle_max" value="2.2689" />
+			<param name="cluster" value="1" />
+			<param name="skip" value="0" />
+			<param name="ip_address" value="192.168.0.10" />
+			<param name="ip_port" value="10940" />
+			<param name="serial_port" value="/dev/ttyACM0" />
+			<param name="frame_id" value="laser" />
+			<param name="calibrate_time" value="false" />
+			<param name="time_offset" value="0.0" />
+			<param name="publish_multiecho" value="false" />
+	</node>
+</launch>
