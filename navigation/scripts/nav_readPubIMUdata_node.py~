@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import rospy
+from navigation.msg import RawIMUData
+#from std_msgs.msg import String
+import serial
+import struct
+
+ser=serial.Serial("/dev/ttyS1",115200,serial.EIGHTBITS,serial.PARITY_NONE,serial.STOPBITS_ONE,0,False,False,None,False,None)
+ser.flushInput()
+ser.flushOutput()
+
+data=RawIMUData()
+#data=String
+data.data_buff=[i for i in range (61)]
+m=0
+
+def talker():
+	pub = rospy.Publisher('/mis/raw_imu_data', RawIMUData)
+	rospy.init_node('nav_readPubIMUdata_node')
+	rospy.loginfo("nav_readPubIMUdata_node running...")
+    
+	while not rospy.is_shutdown():
+		m=ser.read()
+	
+		if m==b'\x41':
+        		m=ser.read()
+        		if m==b'\x7A':
+            			m=ser.read()
+            			if m==b'\x04':
+					#print(m)
+					i=0;
+					while i<61:
+						m=ser.read()
+						if len(m)!=0:
+							n=struct.unpack("B",m)
+							#print(type(n[0]))
+							data.data_buff[i]=n[0]
+							#rospy.loginfo(data.data_buff[i])
+							i=i+1
+							#rospy.loginfo(data.data_buff)
+		pub.publish(data)                                  
+        	rospy.sleep(0.01)
+
+if __name__ == '__main__':
+    try:
+        talker()
+    except rospy.ROSInterruptException:
+        pass

@@ -1,0 +1,12 @@
+<launch>
+  <node name="mis_speed1_node" 
+        pkg="roboteq_interface" 
+        type="mis_speed1_node.py"
+        output="screen"
+  		launch-prefix="gnome-terminal -e" />
+  <node name="mis_speed2_node" 
+        pkg="roboteq_interface" 
+        type="mis_speed2_node.py"
+        output="screen"
+  		launch-prefix="gnome-terminal -e" />
+</launch>

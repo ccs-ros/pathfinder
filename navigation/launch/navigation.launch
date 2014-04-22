@@ -1,0 +1,16 @@
+<launch>
+	<node name="nav_readPubIMUdata_node" pkg="navigation" type="nav_readPubIMUdata_node.py" />
+	
+	<node name="nav_subToIMUdata_node" pkg="navigation" type="nav_subToIMUdata_node.py" />
+	
+	<node name="nav_filter_node" pkg="navigation" type="nav_filter_node" />
+	
+	<include file="$(find roboteq_interface)/launch/roboteq_1_2.launch" />
+
+<include file="$(find computer_vision)/launch/gscam_high.launch" />
+<node name="det_object_node" pkg="computer_vision" type="det_object_node" />
+<node name="det_hue_node" pkg="computer_vision" type="det_hue_node" />
+
+	
+	<node name="nav_testing_node" pkg="navigation" type="nav_testing_node" />
+</launch>

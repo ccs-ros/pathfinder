@@ -1,0 +1,11 @@
+<launch>
+  <node name="left_roboteq_interface" 
+        pkg="roboteq_interface" 
+        type="left_roboteq_interface.py" />
+  <node name="right_roboteq_interface" 
+        pkg="roboteq_interface" 
+        type="right_roboteq_interface.py" />
+</launch>
+
+
+

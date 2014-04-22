@@ -1,0 +1,14 @@
+<launch>
+  <node name="serial_comm_left_motor_cont" 
+        pkg="controller_test" 
+        type="left_motor_controller_position_interface.py" />
+  <node name="serial_comm_right_motor_cont" 
+        pkg="controller_test" 
+        type="right_motor_controller_position_interface.py" />
+  <node name="mis_controller_motor_encoder_test" 
+        pkg="controller_test" 
+        type="mis_controller_motor_encoder_test" />
+</launch>
+
+
+

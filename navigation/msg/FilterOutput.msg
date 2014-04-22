@@ -1,0 +1,12 @@
+float32 velocity
+float32 noSlipFL
+float32 noSlipFR
+float32 noSlipBL
+float32 noSlipBR
+uint8 allSlipFlag
+float32 deltaDistance
+float32 roll
+float32 pitch
+float32 yaw
+float32 distance
+float32 bearing

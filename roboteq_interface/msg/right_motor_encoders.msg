@@ -1,0 +1,2 @@
+int32 motor_1_encoder_count
+int32 motor_2_encoder_count

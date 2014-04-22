@@ -1,0 +1,15 @@
+int16 x
+int16 y
+int16 z
+int16 pitch
+int16 roll
+int16 yaw
+int16 heading
+uint8 object
+uint16 centerx
+uint16 centery
+float32 areaobject
+uint8 beacon
+uint16 beaconx
+uint16 beacony
+float32 areabeacon

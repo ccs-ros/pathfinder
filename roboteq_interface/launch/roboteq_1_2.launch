@@ -1,0 +1,8 @@
+<launch>
+  <node name="mis_speed1_node" 
+        pkg="roboteq_interface" 
+        type="mis_speed1_node.py" />
+  <node name="mis_speed2_node" 
+        pkg="roboteq_interface" 
+        type="mis_speed2_node.py" />
+</launch>

@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find roboteq_interface)/launch/roboteq_interface.launch"
+  		output="screen"
+  		launch-prefix="gnome-terminal -e" />
+  <node name="motor_encoder_test" 
+        pkg="roboteq_interface" 
+        type="motor_encoder_test"
+        output="screen"
+        launch-prefix="gnome-terminal -e"  />
+</launch>

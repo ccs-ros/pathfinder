@@ -1,0 +1,6 @@
+int32 motor_1_encoder_count_abs
+int32 motor_2_encoder_count_abs
+int32 motor_1_encoder_count_rel
+int32 motor_2_encoder_count_rel
+int32 motor_1_RPM
+int32 motor_2_RPM

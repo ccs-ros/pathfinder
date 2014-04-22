@@ -1,0 +1,6 @@
+int16 cont_1_motor_1_speed_cmd
+int16 cont_1_motor_2_speed_cmd
+int16 cont_2_motor_1_speed_cmd
+int16 cont_2_motor_2_speed_cmd
+int16 cont_3_motor_1_speed_cmd
+int16 cont_3_motor_2_speed_cmd

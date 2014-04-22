@@ -1,0 +1,9 @@
+<launch>
+	<node name="nav_readPubIMUdata_node" pkg="navigation" type="nav_readPubIMUdata_node.py" />
+	
+	<node name="nav_subToIMUdata_node" pkg="navigation" type="nav_subToIMUdata_node.py" />
+	
+	<include file="$(find roboteq_interface)/launch/roboteq_1_2.launch" />
+	
+	<node name="nav_filter_node" pkg="navigation" type="nav_filter_node" />
+</launch>
