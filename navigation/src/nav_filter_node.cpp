@@ -18,6 +18,7 @@
 #include <roboteq_interface/speed1_data.h>
 #include <roboteq_interface/speed2_data.h>
 #include <armadillo>
+#include <cmath>
 
 using namespace std;
 
@@ -60,6 +61,8 @@ public:
     this->ay = msg->Ax*(32.2*12);
     this->ax = -msg->Ay*(32.2*12);
     this->az = -msg->Az*(32.2*12);
+    
+
     //this->p = msg->p;
     //this->q = msg->q;
     //this->r = msg->r;
@@ -141,31 +144,30 @@ int main(int argc, char **argv)
 	arma::vec x_km(5);
 	arma::mat Y_tilt(3,1);
 	arma::mat H_tilt(3,5);
-    arma::mat Z_tilt(3,1);
-    arma::mat y_tilt(3,1);
-    arma::mat R_tilt(3,3);
-    arma::mat S_tilt(3,3); 
-    arma::mat K_tilt(5,3);
+	arma::mat Z_tilt(3,1);
+	arma::mat y_tilt(3,1);
+	arma::mat R_tilt(3,3);
+	arma::mat S_tilt(3,3); 
+	arma::mat K_tilt(5,3);
     
-    //Set previous to current encoder count
-    WE1pr=0;
+	//Set previous to current encoder count
+	WE1pr=0;
 	WE2pr=0;
-    WE3pr=0;
-    WE4pr=0;
+	WE3pr=0;
+	WE4pr=0;
     
-	
-	while (WE1pr==0 && WE2pr==0 && WE3pr==0 && WE4pr==0)
-    {
-    	WE1pr=inData.encFL;
-    	WE2pr=inData.encFR;
-    	WE3pr=inData.encBL;
-    	WE4pr=inData.encBR;
-    	ros::spinOnce();
-    	WE1=inData.encFL;
-    	WE2=inData.encFR;
-    	WE3=inData.encBL;
-    	WE4=inData.encBR;
-    }
+	while (WE1pr==0 && WE2pr==0 && WE3pr==0 && WE4pr==0 && ros::ok())
+	{
+    		WE1pr=inData.encFL;
+    		WE2pr=inData.encFR;
+    		WE3pr=inData.encBL;
+    		WE4pr=inData.encBR;
+    		WE1=inData.encFL;
+    		WE2=inData.encFR;
+    		WE3=inData.encBL;
+    		WE4=inData.encBR;
+		ros::spinOnce();
+	}
    	
     while(ros::ok())
     {
@@ -477,20 +479,20 @@ int main(int argc, char **argv)
 		
 		//Output data
 		outData.velocity=V;
-    	outData.noSlipFL=Slip1;
-    	outData.noSlipFR=Slip2;
-    	outData.noSlipBL=Slip3;
-    	outData.noSlipBR=Slip4;
-    	outData.allSlipFlag=All_Slip_Flag;
-    	outData.deltaDistance=deltaD;
-    	outData.roll=phi_k;
-    	outData.pitch=theta_k;
-    	outData.yaw=psi_k;
-    	outData.distance=d_k;
-    	outData.bearing=gamma_k;
+		outData.noSlipFL=Slip1;
+		outData.noSlipFR=Slip2;
+		outData.noSlipBL=Slip3;
+	    	outData.noSlipBR=Slip4;
+		outData.allSlipFlag=All_Slip_Flag;
+		outData.deltaDistance=deltaD;
+		outData.roll=phi_k;
+		outData.pitch=theta_k;
+		outData.yaw=psi_k;
+		outData.distance=d_k;
+		outData.bearing=gamma_k;
     	
-    	//Publish output
-    	pub.publish(outData);
+		//Publish output
+		pub.publish(outData);
     	
 		ros::spinOnce();
 		ros::Duration(0.05).sleep(); //50HZ
