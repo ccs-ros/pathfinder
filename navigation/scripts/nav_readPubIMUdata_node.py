@@ -26,7 +26,7 @@ def talker():
         		m=ser.read()
         		if m==b'\x7A':
             			m=ser.read()
-            			if m==b'\x04':
+            			if m==b'\x03':
 					#print(m)
 					i=0;
 					while i<61:

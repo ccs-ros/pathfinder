@@ -7,10 +7,8 @@
 	
 	<include file="$(find roboteq_interface)/launch/roboteq_1_2.launch" />
 
-<include file="$(find computer_vision)/launch/gscam_high.launch" />
-<node name="nav_object_node" pkg="computer_vision" type="nav_object_node" />
-<node name="nav_hue_node" pkg="computer_vision" type="nav_hue_node" />
+	<include file="$(find computer_vision)/launch/libuvc_low.launch" />
+	<node name="det_hue_node" pkg="computer_vision" type="det_hue_node" />
 
-	
 	<node name="nav_testing_node" pkg="navigation" type="nav_testing_node" />
 </launch>

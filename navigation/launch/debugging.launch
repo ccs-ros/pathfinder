@@ -3,7 +3,11 @@
 	
 	<node name="nav_subToIMUdata_node" pkg="navigation" type="nav_subToIMUdata_node.py" />
 	
-	<include file="$(find roboteq_interface)/launch/roboteq_1_2.launch" />
-	
 	<node name="nav_filter_node" pkg="navigation" type="nav_filter_node" />
+	
+	<include file="$(find roboteq_interface)/launch/roboteq_1_2.launch" />
+
+	<include file="$(find computer_vision)/launch/libuvc_low.launch" />
+	<node name="det_hue_node" pkg="computer_vision" type="det_hue_node" />
+
 </launch>

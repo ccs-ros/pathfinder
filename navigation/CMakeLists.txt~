@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  computer_vision
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,6 +74,7 @@ generate_messages(
   std_msgs
   navigation
   roboteq_interface
+  computer_vision
 )
 
 ###################################
@@ -87,7 +89,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES navigation
-   CATKIN_DEPENDS message_generation roscpp rospy std_msgs message_runtime roboteq_interface
+   CATKIN_DEPENDS message_generation roscpp rospy std_msgs message_runtime roboteq_interface computer_vision
 #  DEPENDS system_lib
 )
 
@@ -121,17 +123,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(nav_temp_node src/nav_temp_node.cpp)
-target_link_libraries(nav_temp_node ${catkin_LIBRARIES})
-add_dependencies(nav_temp_node ${catkin_EXPORTED_TARGETS})
 
-add_executable(nav_filter_node src/nav_filter_node.cpp)
-target_link_libraries(nav_filter_node ${catkin_LIBRARIES} armadillo lapack blas)
-add_dependencies(nav_filter_node ${catkin_EXPORTED_TARGETS})
-
-add_executable(nav_testing_node src/nav_testing_node.cpp)
-target_link_libraries(nav_testing_node ${catkin_LIBRARIES} armadillo lapack blas)
-add_dependencies(nav_testing_node ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##

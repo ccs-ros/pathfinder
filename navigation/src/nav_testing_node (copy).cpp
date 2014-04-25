@@ -23,16 +23,12 @@ int16_t front_left_motor_speed = 0;
 int16_t front_right_motor_speed = 0;
 int16_t rear_left_motor_speed = 0;
 int16_t rear_right_motor_speed = 0;
-int16_t gimbal_desired_angle_output = 0; // Degrees*100
-int16_t gimal_current_angle_output = 0; // Degrees*100
 
 const int object_area_threshold = 2000; // pixels
 const int beacon_area_threshold = 10000; // pixels
 
 void pivot(int speed);
 void driveStraight(int speed);
-void driveStraightTurnRight(int speed);
-void rotateGimbal(double desired_angle,double current_angle);
 
 /*motor_commands.msg
 int16 cont_1_motor_1_speed_cmd
@@ -100,13 +96,6 @@ int main(int argc, char **argv)
     static int state = 0;
     static int object_seen_counter = 0;
     static int beacon_seen_counter = 0;
-    //static int gimbal_incremental angle;
-    static float gimbal_desired_angle;
-    static float gimbal_current_angle;
-    const float gimbal_step = 0.9; // Degrees
-    static float gimbal_rotation_sign = 1.0;
-    static float pivot_to_gimbal_setpoint = 0.0;
-    gimbal_current_angle = 0.0;
 
     Data inData;//structure for input data
     
@@ -115,105 +104,66 @@ int main(int argc, char **argv)
     	if(state==0)//Drive to initial positoin
     	{
     		driveStraight(500);
-    		if(inData.distance>=1100) state=1;
+    		if(inData.distance>=1030) state=1;
     		else state=0;
-    	}/*
-    	else if(state==99)//Look for landmark
+    	}
+    	else if(state==1)//Look for sample
     	{
-    		gimbal_desired_angle = 90.0; // Degrees
-			gimbal_rotation_sign = 1.0; // CCW
-			while(gimbal_current_angle < 90.0 && ros::ok())
-			{
-				gimbal_incremental_angle = gimbal_step*gimbal_rotation_sign;
-				rotateGimbal((gimbal_current_angle+gimbal_incremental_angle),gimbal_current_angle);
-				gimbal_current_angle = gimbal_current_angle+gimbal_incremental_angle;
-				msg_out.Angle_3 = gimbal_current_angle_output;
-				msg_out.Desired_Angle_3 = gimbal_desired_angle_output;
-				pub.publish(msg_out);
-				ros::spinOnce();
-				ros::Duration(0.01).sleep();
-			}
-			rotateGimbal(gimbal_current_angle,gimbal_current_angle);
-			gimbal_desired_angle = 0.0; // Degrees
-			gimbal_rotation_sign = -1.0; // CW
-			while(gimbal_current_angle > 0.0 && ros::ok())
-			{
-				gimbal_incremental_angle = gimbal_step*gimbal_rotation_sign;
-				rotateGimbal((gimbal_current_angle+gimbal_incremental_angle),gimbal_current_angle);
-				gimbal_current_angle = gimbal_current_angle+gimbal_incremental_angle;
-				msg_out.Angle_3 = gimbal_current_angle_output;
-				msg_out.Desired_Angle_3 = gimbal_desired_angle_output;
-				pub.publish(msg_out);
-				ros::spinOnce();
-				ros::Duration(0.01).sleep();
-			}
-			rotateGimbal(gimbal_current_angle,gimbal_current_angle);
-			state = 2
-    	}*/
-    else if(state==1)//Rotate to look for landmark
-    {
-    	pivot(-500);
-    	if(inData.yaw >= PI/2) state = 2;
-    	else state = 1;
-    }
-    else if(state==2)//Rotate back after looking for landmark
-    {
-    	pivot(500);
-    	if(inData.yaw<=.45) state = 4;
-    	else state = 2;
-    }
-	else if(state==99) //drive to search location
-	{
-		driveStraight(500);
-		if(inData.distance>=2000) state=4;
-		else state=3;
-	}
-
-	else if(state==4)
-	{
-		driveStraightTurnRight(500);
-		if(inData.object_seen==1) object_seen_counter++;
+    		pivot(500);
+    		if(inData.object_seen==1) object_seen_counter++;
 		else object_seen_counter=0;
-		
-		if(object_seen_counter>=7) state=5;
-		else state=4;
+		if(object_seen_counter>=5) state=2;
+    		else state=1;
+    	}
+	else if(state==2)//Rotate to sample
+	{
+		pivot(round((inData.object_x-vision_turning_setpoint)*vision_turning_gain));
+		if(abs(inData.object_x-vision_turning_setpoint)<=vision_turning_threshold)
+		{
+			state=3;
+		}
+		else state = 2;
 	}
-
-    	else if(state==5)//Drive to sample
+    	else if(state==3)//Drive to sample
     	{
     		driveStraight(500);
-    		if(inData.object_area>=object_area_threshold) state=6;
-    		else state=5;
+    		if(inData.object_area>=object_area_threshold) state=4;
+    		else state=3;
     	}
-
-    	else if(state==6)//Stop at sample
+    	else if(state==4)//Stop at sample
     	{
     		driveStraight(0);
 		ros::Duration(5).sleep();
-		state=7;
+		state=5;
     	}
-
-	else if(state==7)//Look for beacon
+	else if(state==5)//Look for beacon
 	{
 		pivot(300);
     		if(inData.beacon_seen==1) beacon_seen_counter++;
 		else beacon_seen_counter=0;
-		if(beacon_seen_counter>=3) state=8;
-    		else state=7;
+		if(beacon_seen_counter>=3) state=7;
+    		else state=5;
     	}
-
-	else if(state==8)//Drive back to beacon
+	else if(state==6)//Pivot to beacon
+	{
+		pivot(round((inData.beacon_x-vision_turning_setpoint)*vision_turning_gain));
+		if(abs(inData.beacon_x-vision_turning_setpoint)<=vision_turning_threshold)
+		{
+			state=7;
+		}
+		else state = 6;
+	}
+	else if(state==7)//Drive back to beacon
 	{
 		driveStraight(500);
-    		if(inData.beacon_area>=beacon_area_threshold) state=9;
-    		else state=8;
+    		if(inData.beacon_area>=beacon_area_threshold) state=8;
+    		else state=7;
 	}
-
-	//else//Stop at beacon
-	//{
-	//	driveStraight(0);
-	//	state=9;
-	//}
+	else//Stop at beacon
+	{
+		driveStraight(0);
+		state=8;
+	}
     	
     	
     	outData.cont_1_motor_1_speed_cmd=front_left_motor_speed;
@@ -238,16 +188,6 @@ void driveStraight(int speed) // Positive speed = forward, negative = backward. 
 	rear_right_motor_speed = speed;
 }
 
-void driveStraightTurnRight(int speed) // Positive speed = forward, negative = backward. Range of speed: [-1000,1000]
-{
-	if(speed > 1000) speed=1000;
-	else if(speed < -1000) speed = -1000;
-	front_left_motor_speed = speed-100;
-	front_right_motor_speed = speed+200;
-	rear_left_motor_speed = speed-100;
-	rear_right_motor_speed = speed+200;
-}
-
 void pivot(int speed) // Positive speed = CW, negative = CCW. Range of speed: [-1000,1000]
 {
 	if(speed > 1000) speed=1000;
@@ -257,12 +197,6 @@ void pivot(int speed) // Positive speed = CW, negative = CCW. Range of speed: [-
 	rear_left_motor_speed = speed;
 	rear_right_motor_speed = -speed;
 }
-/*
-void rotateGimbal(double desired_angle,double current_angle)
-{
-	gimbal_desired_angle_output  = round(desired_angle*100);
-	gimbal_current_angle_output = round(current_angle*100);
-}*/
 /*
 void driveBearing(int speed, float bearing_setpoint) // Positive speed = forward, negative = backward. Range of speed: [-1000,1000]; bearing_setpoint is in degrees.
 {

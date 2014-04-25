@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     	temp_data.encFR = 0.02*0.9;
     	temp_data.encBL = 0.02*1.1;
     	temp_data.encBR = 0.02*0.9;
-   	temp_data.p = 0;
+   	 	temp_data.p = 0;
     	temp_data.q = 0;
     	temp_data.r = 0;
     	temp_data.ax = 0;
@@ -32,11 +32,11 @@ int main(int argc, char **argv)
     	temp_data.stopFlag = 0;
     	temp_data.turnFlag = 0;
     	
-	pub.publish(temp_data);
+		pub.publish(temp_data);
 		
-	ros::spinOnce();
-	loop_rate.sleep();
-	++count;
+		ros::spinOnce();
+		loop_rate.sleep();
+		++count;
     }
 
     return 0;
