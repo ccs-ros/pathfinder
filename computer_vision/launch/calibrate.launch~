@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find computer_vision)/launch/libuvc_calibrate.launch" />
+	<node name="cv_calibrate_node" pkg="computer_vision" type="cv_calibration_node" />
+</launch>

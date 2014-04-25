@@ -110,6 +110,10 @@ include_directories(
 
 
 ## Declare a cpp executable
+add_executable(cv_calibration_node src/cv_calibration_node.cpp)
+target_link_libraries(cv_calibration_node ${catkin_LIBRARIES})
+add_dependencies(cv_calibration_node ${catkin_EXPORTED_TARGETS})
+
 add_executable(det_chroma_node src/det_chroma_node.cpp)
 target_link_libraries(det_chroma_node ${catkin_LIBRARIES})
 add_dependencies(det_chroma_node ${catkin_EXPORTED_TARGETS})
