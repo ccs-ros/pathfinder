@@ -19,12 +19,12 @@ namespace enc = sensor_msgs::image_encodings;
 
 //Show images hue
 const bool SHOW_ORIGIONAL_IMAGE = false;	//image callback	
-const bool SHOW_THRESH_IMAGE = true;		//filterHue function
-const bool DRAW_HUE_TRACKING = true;		//findCandidates function 
-const bool DRAW_CIRCLES = true; 			//hough circle function
+const bool SHOW_THRESH_IMAGE = false;		//filterHue function
+const bool DRAW_HUE_TRACKING = false;		//findCandidates function 
+const bool DRAW_CIRCLES = false; 			//hough circle function
 
 //Show images features
-const bool DRAW_FOUND_MATCHES = true;
+const bool DRAW_FOUND_MATCHES = false;
 
 //Debugging
 const bool CALIBRATE_MODE = false;
@@ -224,6 +224,11 @@ int H_MAX = 255;//30;
 int S_MAX = 255;//255;
 int V_MAX = 255;//255;
 
+//White detection constants
+const double threshold_val = 220;
+const double max_BINARY_value = 255;
+const int threshold_type = 3;
+
 int main(int argc, char **argv)
 {
    ros::init(argc, argv, "det_hue_node");
@@ -246,7 +251,10 @@ int main(int argc, char **argv)
    return 0;
 }
 
-
+int x_object = 0;
+int y_object = 0;
+int object_seen = 0;
+int object_area = 0;
 void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 {
     double begin = ros::Time::now().toSec(); //start timer
@@ -257,7 +265,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
     //Image variables
     vector <TrackingObject> Segments;
     vector <TrackingObject> Segments2;
-    
+	vector <TrackingObject> SegmentsW;
+
     //Output variable
     computer_vision::Beacon outData;
     
@@ -277,7 +286,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 		cv::waitKey(1);
     }
 
-    cv::Mat imgThreshP = cv_ptr->image;
+	cv::Mat imgThreshP = cv_ptr->image;
 	filterHue(imgThreshP, 0);
 	Segments = findCandidates(cv_ptr->image, imgThreshP);
 	pink = Segments.size();
@@ -300,13 +309,62 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
     	area_beacon=Segments2[0].getarea();
     	detected = 1;
     	//cout << "(x,y, area) = (" << x_beacon << ", " << x_beacon2 << ", " << area_beacon << ")" << endl;
-    	cout << "detected =" << detected << endl;
+    	//cout << "detected =" << detected << endl;
     } else detected = 0;
     
     outData.beaconx = x_beacon;
     outData.beacony = y_beacon;
     outData.areabeacon = area_beacon;
     outData.beacon = detected;
+
+///////////////////white detection
+
+	//Split frame into BGR channels 
+	cv::Mat R, G, B;
+	cv::Mat channel[3];
+	split(cv_ptr->image, channel);
+	
+	//Convert channels to 8 bit unsigned format
+	channel[0].convertTo(B, CV_8U);
+	channel[1].convertTo(G, CV_8U);
+	channel[2].convertTo(R, CV_8U);
+	
+	//Empty matrices for binary images
+	cv::Mat ch1 = cv::Mat(B.size(), CV_8UC1);
+	cv::Mat ch2 = cv::Mat(G.size(), CV_8UC1);
+	cv::Mat ch3 = cv::Mat(R.size(), CV_8UC1);
+	cv::Mat temp = cv::Mat(R.size(), CV_8UC1);
+	cv::Mat res = cv::Mat(R.size(), CV_8UC1);
+
+	//Convert channels to binary images
+	threshold(B, ch1, threshold_val, max_BINARY_value, threshold_type);
+	threshold(G, ch2, threshold_val, max_BINARY_value, threshold_type);
+	threshold(R, ch3, threshold_val, max_BINARY_value, threshold_type);
+		
+	//AND together B, G, R channels
+	cv::bitwise_and(ch1, ch2, temp);
+	cv::bitwise_and(ch3, temp, res);
+
+	//Display resulting image
+	morphImg(res);
+	//imshow("Resulting Image", res);	
+	//cv::waitKey(1);
+  	
+	SegmentsW = findCandidates(cv_ptr->image, res);
+	    
+	if(SegmentsW.size()>0)
+	{	
+		object_seen=1;
+		x_object=SegmentsW[0].getxPos();
+		y_object=SegmentsW[0].getyPos();
+		object_area=SegmentsW[0].getarea();
+	} else object_seen=0;
+
+	outData.centerx = x_object;
+	outData.centery = y_object;
+	outData.areaobject = object_area;
+	outData.object = object_seen;
+
     
     pub.publish(outData);
     
@@ -440,21 +498,21 @@ void filterHue(cv::Mat &frame, const int &Y)
 	if(Y==1)
 	{
 		//temp ball yellow narrow
-		H_MINy = 34;
-		S_MINy = 58;
-		V_MINy = 33;
-		H_MAXy = 88;
-		S_MAXy = 117;
-		V_MAXy = 112;
+		H_MINy = 99;
+		S_MINy = 151;
+		V_MINy = 140;
+		H_MAXy = 121;
+		S_MAXy = 214;
+		V_MAXy = 238;
 	}
 	else
 	{
-		H_MINy = 161;
-		S_MINy = 89;
-		V_MINy = 79;
-		H_MAXy = 180;
-		S_MAXy = 181;
-		V_MAXy = 244;
+		H_MINy = 115;
+		S_MINy = 134;
+		V_MINy = 0;
+		H_MAXy = 217;
+		S_MAXy = 255;
+		V_MAXy = 255;
 	}
 			
 	//Image variables

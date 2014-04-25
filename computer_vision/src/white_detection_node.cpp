@@ -1,3 +1,14 @@
+//Includes all the headers necessary to use the most common public pieces of the ROS system.
+//#include <iostream>
+//#include <stdio.h>
+
+#include <ros/ros.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 #include <ros/ros.h> 						//includes headers common for ros system
 #include <vector> 							//hue detection
 #include <sstream> 							//hue detection
@@ -15,28 +26,31 @@
 #include <computer_vision/Beacon.h>			//message for homing beacon
 
 using namespace std;
+
 namespace enc = sensor_msgs::image_encodings;
+image_transport::Publisher pub; //Use method of ImageTransport to create image publisher
+ros::Publisher pub2;
 
-//Debugging
-const bool SHOW_ORIGIONAL_IMAGE = true;		//image callback	
-const bool SHOW_THRESH_IMAGE = true;		//filterHue function
-const bool DRAW_HUE_TRACKING = true;		//findCandidates function 
-const bool CALIBRATE_MODE = true;			//trackbars for calibration
-const bool HZ = true; 					//print tracking frequency
-
-//Topic Names
-static const char IMAGE_TOPIC[] = "logitech_c920/image_raw";
 static const char OUTPUT_DATA_TOPIC[] = "det/mis_out_data";
 
-//Global variables for surf
-ros::Publisher pub;
+const bool DRAW_HUE_TRACKING = true;		//findCandidates function 
+
+//Default capture width and height
+const int FRAME_WIDTH = 1280;
+const int FRAME_HEIGHT = 720;
+
+//White detection constants
+const double threshold_val = 220;
+const double max_BINARY_value = 255;
+const int threshold_type = 3;
 
 //Max number of objects to be detected in frame
 const int MAX_NUM_OBJECTS = 50;
 
 //Minimum and maximum object hue area
-const int MIN_OBJECT_AREA = 1 * 1;
-const int MAX_OBJECT_AREA = 400 * 400;
+const int MIN_OBJECT_AREA = 4 * 4;
+const int MAX_OBJECT_AREA = 85 * 85;
+
 
 //Class for homing beacon tracking
 class TrackingObject
@@ -107,201 +121,133 @@ class TrackingObject
 	cv::Scalar Color;
 };
 
-//Callback function
-void imageCallback(const sensor_msgs::ImageConstPtr& raw_image);
 
-//Functions
-void filterHSV(cv::Mat &frame, const int &COLOR);
-void filterYUV(cv::Mat &frame, const int &COLOR);
 void morphImg(cv::Mat &thresh);
-
-void createTrackbarsYUV();
-void createTrackbarsHSV();
-void on_trackbarHSV(int, void*){} 
-void on_trackbarYUV(int, void*){}
-
 vector <TrackingObject> findCandidates(const cv::Mat &frame, const cv::Mat imgThresh);
-
 void drawHueDetection(const cv::Mat &frame, vector <TrackingObject> &Segments);
 string intToString(int number);
 
-//HSV YUV
-int H_MIN = 0;
-int S_MIN = 0;
-int Vh_MIN = 0;
-int H_MAX = 255;
-int S_MAX = 255;
-int Vh_MAX = 255;
-
-int Y_MIN = 0;
-int U_MIN = 0;
-int Vy_MIN = 0;
-int Y_MAX = 255;
-int U_MAX = 255;
-int Vy_MAX = 255;
-
-int main(int argc, char **argv)
+//Help function
+static void help()
 {
-   ros::init(argc, argv, "det_chroma_node");
-
-   ros::NodeHandle nh;
-   image_transport::ImageTransport it(nh);
-    
-   cv::namedWindow("Origional Image", CV_WINDOW_AUTOSIZE);
-   cv::destroyWindow("Origional Image");
-
-   image_transport::Subscriber sub = it.subscribe(IMAGE_TOPIC, 1, imageCallback);
-   pub = nh.advertise<computer_vision::Beacon>(OUTPUT_DATA_TOPIC, 1);
-
-   double time_curr = ros::Time::now().toSec();
-   double time_prev = time_curr;
-   
-   ROS_INFO("Running det_chroma_node...");
-   ros::spin();
-   
-   return 0;
+	std::cout << "This program detects white objects."
+		<< std::endl << "" << std::endl << std::endl;
 }
 
+int x_object = 0;
+int y_object = 0;
+int object_seen = 0;
+int object_area = 0;
 
-void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
+//This function is called everytime a new image is published
+void imageCallback(const sensor_msgs::ImageConstPtr& original_image)
 {
-	double begin = ros::Time::now().toSec(); //start timer
-    
-	//structures for subscribing and publishing
-	cv_bridge::CvImagePtr cv_ptr;
-
+	//start time to record frequency
+	double begin = ros::Time::now().toSec();
+	
+	//Output structure	
+	computer_vision::Beacon outData;
+	
 	//Image variables
 	vector <TrackingObject> Segments;
 
+	//Convert from the ROS image message to a CvImage
+	cv_bridge::CvImagePtr cv_ptr;
 	try
 	{
-        cv_ptr = cv_bridge::toCvCopy(raw_image, enc::BGR8);
+        	//Always copy, returning a mutable CvImage; OpenCV expects color images to use BGR channel order.
+        	cv_ptr = cv_bridge::toCvCopy(original_image, enc::BGR8);
 	}
 	catch (cv_bridge::Exception& e)
 	{
-        ROS_ERROR("computer_vision::det_chroma_node.cpp::cv_bridge exception: %s", e.what());
-        return;
+        	//if there is an error during conversion, display it
+        	ROS_ERROR("white_detection::white_detection_node.cpp::cv_bridge exception: %s", e.what());
+        	return;
 	}
-    
-	if(SHOW_ORIGIONAL_IMAGE==true) 
-	{
-		cv::imshow("Origional Image", cv_ptr->image);
-		cv::waitKey(1);
-	}
+	
+	//Split frame into BGR channels 
+	cv::Mat R, G, B;
+	cv::Mat channel[3];
+	split(cv_ptr->image, channel);
+	
+	//Convert channels to 8 bit unsigned format
+	channel[0].convertTo(B, CV_8U);
+	channel[1].convertTo(G, CV_8U);
+	channel[2].convertTo(R, CV_8U);
+	
+	//Empty matrices for binary images
+	cv::Mat ch1 = cv::Mat(B.size(), CV_8UC1);
+	cv::Mat ch2 = cv::Mat(G.size(), CV_8UC1);
+	cv::Mat ch3 = cv::Mat(R.size(), CV_8UC1);
+	cv::Mat temp = cv::Mat(R.size(), CV_8UC1);
+	cv::Mat res = cv::Mat(R.size(), CV_8UC1);
 
-	cv::Mat imgThreshHSV = cv_ptr->image;
-	cv::Mat imgThreshYUV = cv_ptr->image;
-	filterHSV(imgThreshHSV, 0);
-	filterYUV(imgThreshYUV, 0);
+	//Convert channels to binary images
+	threshold(B, ch1, threshold_val, max_BINARY_value, threshold_type);
+	threshold(G, ch2, threshold_val, max_BINARY_value, threshold_type);
+	threshold(R, ch3, threshold_val, max_BINARY_value, threshold_type);
+		
+	//AND together B, G, R channels
+	cv::bitwise_and(ch1, ch2, temp);
+	cv::bitwise_and(ch3, temp, res);
 
-	//Segments = findCandidates(cv_ptr->image, imgThreshHSV);
+	//Display resulting image
+	morphImg(res);
+	imshow("Resulting Image", res);	
+	cv::waitKey(1);
+  	
+	Segments = findCandidates(cv_ptr->image, res);
+	    
+	if(Segments.size()>0)
+	{	
+		object_seen=1;
+		x_object=Segments[0].getxPos();
+		y_object=Segments[0].getyPos();
+		object_area=Segments[0].getarea();
+	} else object_seen=0;
+
+	outData.centerx = x_object;
+	outData.centery = y_object;
+	outData.areaobject = object_area;
+	outData.object = object_seen;
     
-	double end = ros::Time::now().toSec(); //stop timer
-	if(HZ) ROS_INFO("Sample Rate = %f", 1/(end-begin)); //print execution time
+	pub2.publish(outData);
+	//pub.publish(cv_ptr->toImageMsg());
+	
+	//end timer and print frequency
+	double end = ros::Time::now().toSec();
+	ROS_INFO("Sample Rate = %f", 1/(end-begin));
+        
 }
 
-//Converts given image to binary image of threshold values
-void filterHSV(cv::Mat &frame, const int &COLOR)
+
+int main(int argc, char **argv)
 {
-	if(CALIBRATE_MODE==true) createTrackbarsHSV(); 
-	else
-	{
-		H_MIN = 161;
-		S_MIN = 89;
-		Vh_MIN = 79;
-		H_MAX = 180;
-		S_MAX = 181;
-		Vh_MAX = 244;
-	}
+    ros::init(argc, argv, "image_processor");
+    ros::NodeHandle nh;
+    image_transport::ImageTransport it(nh);
+	
+    cv::namedWindow("Resulting Image", CV_WINDOW_AUTOSIZE);  
 
-	//Image variables
-	cv::Mat imgHSV, imgThresh;
-	cv::Mat img = frame;
-
-	//Process source image
-	cv::GaussianBlur(frame, img, cv::Size(9,9), 0); //(41,41), (11,11)
-	cv::cvtColor(img, imgHSV, cv::COLOR_BGR2HSV);
-
-	cv::inRange(imgHSV, cv::Scalar(H_MIN, S_MIN, Vh_MIN), cv::Scalar(H_MAX, S_MAX, Vh_MAX), imgThresh); 
-
-	morphImg(imgThresh);			
-
-	frame = imgThresh;
-
-	if(SHOW_THRESH_IMAGE) cv::namedWindow("Threshold Image HSV");
-	if(SHOW_THRESH_IMAGE) cv::imshow("Threshold Image HSV", imgThresh); cv::waitKey(1);
-}
-
-//Converts given image to binary image of threshold values
-void filterYUV(cv::Mat &frame, const int &COLOR)
-{
-	if(CALIBRATE_MODE==true) createTrackbarsYUV(); 
-			
-	//Image variables
-	cv::Mat imgYUV, imgThresh;
-	cv::Mat img = frame;
+    image_transport::Subscriber sub = it.subscribe("logitech_c920/image_raw", 1, imageCallback);
+    //image_transport::Subscriber sub = it.subscribe("usb_cam/image_raw", 1, imageCallback);
     
-	//Process source image
-	cv::GaussianBlur(frame, img, cv::Size(9,9), 0); //(41,41), (11,11)
-	cv::cvtColor(img, imgYUV, cv::COLOR_BGR2YUV);
-    
-	cv::inRange(imgYUV, cv::Scalar(Y_MIN, U_MIN, Vy_MIN), cv::Scalar(Y_MAX, U_MAX, Vy_MAX), imgThresh); 
+    cv::destroyWindow("Resulting Image"); //OpenCV HighGUI call to destroy window on shut-down.
+ 
+    pub2 = nh.advertise<computer_vision::Beacon>(OUTPUT_DATA_TOPIC, 1);
+	
+    ros::Rate r(30);
+    ros::spin();
 
-	morphImg(imgThresh);											
-    
-	frame = imgThresh;
-    
-	if(SHOW_THRESH_IMAGE) cv::namedWindow("Threshold Image YUV");
-	if(SHOW_THRESH_IMAGE) cv::imshow("Threshold Image YUV", imgThresh); cv::waitKey(1);
-}
-
-//Trackbars for calibration HSV
-void createTrackbarsHSV()
-{
-	cv::namedWindow("Trackbars HSV", 0);
-
-	char TrackbarNameHSV[50];
-	sprintf(TrackbarNameHSV, "H_MIN", H_MIN);
-	sprintf(TrackbarNameHSV, "H_MAX", H_MAX);
-	sprintf(TrackbarNameHSV, "S_MIN", S_MIN);
-	sprintf(TrackbarNameHSV, "S_MAX", S_MAX);
-	sprintf(TrackbarNameHSV, "Vh_MIN", Vh_MIN);
-	sprintf(TrackbarNameHSV, "Vh_MAX", Vh_MAX);
-  
-	cv::createTrackbar("H_MIN", "Trackbars HSV", &H_MIN, H_MAX, on_trackbarHSV);
-	cv::createTrackbar("H_MAX", "Trackbars HSV", &H_MAX, H_MAX, on_trackbarHSV);
-	cv::createTrackbar("S_MIN", "Trackbars HSV", &S_MIN, S_MAX, on_trackbarHSV);
-	cv::createTrackbar("S_MAX", "Trackbars HSV", &S_MAX, S_MAX, on_trackbarHSV);
-	cv::createTrackbar("Vh_MIN", "Trackbars HSV", &Vh_MIN, Vh_MAX, on_trackbarHSV);
-	cv::createTrackbar("Vh_MAX", "Trackbars HSV", &Vh_MAX, Vh_MAX, on_trackbarHSV);
-}
-
-//Trackbars for calibration HSV
-void createTrackbarsYUV()
-{
-	cv::namedWindow("Trackbars YUV", 0);
-
-	char TrackbarNameYUV[50];
-	sprintf(TrackbarNameYUV, "Y_MIN", Y_MIN);
-	sprintf(TrackbarNameYUV, "Y_MAX", Y_MAX);
-	sprintf(TrackbarNameYUV, "U_MIN", U_MIN);
-	sprintf(TrackbarNameYUV, "U_MAX", U_MAX);
-	sprintf(TrackbarNameYUV, "Vy_MIN", Vy_MIN);
-	sprintf(TrackbarNameYUV, "Vy_MAX", Vy_MAX);
-
-	cv::createTrackbar("Y_MIN", "Trackbars YUV", &Y_MIN, Y_MAX, on_trackbarYUV);
-	cv::createTrackbar("Y_MAX", "Trackbars YUV", &Y_MAX, Y_MAX, on_trackbarYUV);
-	cv::createTrackbar("U_MIN", "Trackbars YUV", &U_MIN, U_MAX, on_trackbarYUV);
-	cv::createTrackbar("U_MAX", "Trackbars YUV", &U_MAX, U_MAX, on_trackbarYUV);
-	cv::createTrackbar("Vy_MIN", "Trackbars YUV", &Vy_MIN, Vy_MAX, on_trackbarYUV);
-	cv::createTrackbar("Vy_MAX", "Trackbars YUV", &Vy_MAX, Vy_MAX, on_trackbarYUV);
+    ROS_INFO("white_detection::white_detection_node.cpp::No error.");
+ 
 }
 
 //Erodes and dilates image for tracking
 void morphImg(cv::Mat &thresh)
 {
-	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
-	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(8, 8));
+	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(12, 12));
 
 	erode(thresh, thresh, erodeElement);
 	erode(thresh, thresh, erodeElement);
@@ -378,13 +324,6 @@ vector <TrackingObject> findCandidates(const cv::Mat &frame, const cv::Mat imgTh
 	return Segments;
 }
 
-string intToString(int number)
-{
-	std::stringstream ss;
-	ss << number;
-	return ss.str();
-}
-
 //Draws detected hues from TrackingObject class in given frame
 void drawHueDetection(const cv::Mat &frame, vector <TrackingObject> &Segments)
 {
@@ -402,4 +341,11 @@ void drawHueDetection(const cv::Mat &frame, vector <TrackingObject> &Segments)
 		cv::putText(img, Segments.at(i).getType(), cv::Point(Segments.at(i).getxPos(), Segments.at(i).getyPos() - 30), 1, 2, Segments.at(i).getColor());
 		cv::putText(img, intToString(Segments.at(i).getarea()), cv::Point(Segments.at(i).getxPos(), Segments.at(i).getyPos() - 20), 1, 1, cv::Scalar(0, 255, 0));
 	}
+}
+
+string intToString(int number)
+{
+	std::stringstream ss;
+	ss << number;
+	return ss.str();
 }

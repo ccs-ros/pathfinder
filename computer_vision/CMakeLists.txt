@@ -114,6 +114,10 @@ add_executable(det_chroma_node src/det_chroma_node.cpp)
 target_link_libraries(det_chroma_node ${catkin_LIBRARIES})
 add_dependencies(det_chroma_node ${catkin_EXPORTED_TARGETS})
 
+add_executable(white_detection_node src/white_detection_node.cpp)
+target_link_libraries(white_detection_node ${catkin_LIBRARIES})
+add_dependencies(white_detection_node ${catkin_EXPORTED_TARGETS})
+
 add_executable(det_object_node src/det_object_node.cpp)
 target_link_libraries(det_object_node ${catkin_LIBRARIES})
 add_dependencies(det_object_node ${catkin_EXPORTED_TARGETS})
@@ -133,6 +137,7 @@ add_dependencies(det_hue_node ${catkin_EXPORTED_TARGETS})
 add_executable(det_homing_node src/det_homing_node.cpp)
 target_link_libraries(det_homing_node ${catkin_LIBRARIES} armadillo lapack blas)
 add_dependencies(det_homing_node ${catkin_EXPORTED_TARGETS})
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
