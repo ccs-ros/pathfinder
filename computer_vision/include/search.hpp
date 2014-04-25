@@ -190,7 +190,9 @@ cv::Mat filterColors(const cv::Mat &frame, cv::Scalar colors_min, cv::Scalar col
 	cv::Mat img;
 
 	//Process source image
-	cv::GaussianBlur(frame, img, cv::Size(FILTER_SIZE,FILTER_SIZE), 0); //(9,9), (41,41), (11,11)
+	if(FILTER_SIZE>0) cv::GaussianBlur(frame, img, cv::Size(FILTER_SIZE,FILTER_SIZE), 0); //(9,9), (41,41), (11,11)
+	else img = frame.clone();
+	
 	cv::cvtColor(img, img, cv::COLOR_BGR2HSV);
 
 	cv::inRange(img, colors_min, colors_max, img); 
@@ -201,6 +203,40 @@ cv::Mat filterColors(const cv::Mat &frame, cv::Scalar colors_min, cv::Scalar col
 	if(SHOW_THRESH_IMAGE) cv::imshow("Threshold Image (filterColors)", img);
 	
 	return img;
+}
+
+cv::Mat filterWhite(const cv::Mat &frame, const int THRESH_MIN, const int THRESH_MAX, const int THRESH_TYPE, const int ERODE_SIZE, const int DILATE_SIZE, const int &SHOW_THRESH_IMAGE)
+{
+	//Split frame into BGR channels 
+	cv::Mat R, G, B;
+	cv::Mat channel[3];
+	split(frame, channel);
+	
+	//Convert channels to 8 bit unsigned format
+	channel[0].convertTo(B, CV_8U);
+	channel[1].convertTo(G, CV_8U);
+	channel[2].convertTo(R, CV_8U);
+	
+	//Empty matrices for binary images
+	cv::Mat ch1 = cv::Mat(B.size(), CV_8UC1);
+	cv::Mat ch2 = cv::Mat(G.size(), CV_8UC1);
+	cv::Mat ch3 = cv::Mat(R.size(), CV_8UC1);
+	cv::Mat temp = cv::Mat(R.size(), CV_8UC1);
+	cv::Mat res = cv::Mat(R.size(), CV_8UC1);
+
+	//Convert channels to binary images
+	threshold(B, ch1, THRESH_MIN, THRESH_MAX, THRESH_TYPE);
+	threshold(G, ch2, THRESH_MIN, THRESH_MAX, THRESH_TYPE);
+	threshold(R, ch3, THRESH_MIN, THRESH_MAX, THRESH_TYPE);
+		
+	//AND together B, G, R channels
+	cv::bitwise_and(ch1, ch2, temp);
+	cv::bitwise_and(ch3, temp, res);
+
+	//Display resulting image
+	morphImg(res, ERODE_SIZE, DILATE_SIZE);
+	
+	return res;
 }
 
 // Returns vector of class TrackingObject of segments constaining circles

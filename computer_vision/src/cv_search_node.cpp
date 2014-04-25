@@ -12,6 +12,11 @@ namespace enc = sensor_msgs::image_encodings;
 //Debugging
 const bool HZ = 1; //Print sampling rate
 
+//Show Images
+const int ORIG_IMAGE = 1;
+const int THRE_IMAGE = 1;
+const int HUE_TRACK = 1;
+
 //Topic Names
 static const char IMAGE_TOPIC[] = "logitech_c920/image_raw";
 static const char STATE_TOPIC[] = "mis/state";
@@ -71,6 +76,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 	cv_bridge::CvImagePtr cv_ptr;
 	State inData; //vision_state 1 search, 2 homing
 	
+	//get image from camera node
 	try
 	{
         cv_ptr = cv_bridge::toCvCopy(raw_image, enc::BGR8);
@@ -81,17 +87,18 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
         return;
 	}
     
-    //Object structures
+    //object structures
     TrackingObject pinkball("Pink Sample");
     vector <TrackingObject> pinkballs;
     
-    if(inData.vision_state==1)
+    if(inData.vision_state==1) //search state
     {
-    	cv::Mat thresh = filterColors(cv_ptr->image, pinkball.getHSVmin(), pinkball.getHSVmax(), 3, 5, 9, 1); //frame, type, erode, dilate, filter, show thresh
-    	pinkballs = findCandidates(cv_ptr->image, thresh, "Pink Sample", 50, 8*8, 400*400, 1); //frame, thresh, type, max_obj, min_area, max_area, show hue track
+    	cv::Mat thresh = filterColors(cv_ptr->image, pinkball.getHSVmin(), pinkball.getHSVmax(), 3, 5, 9, THRE_IMAGE); //frame, type, erode, dilate, filter, show thresh
+    	pinkballs = findCandidates(cv_ptr->image, thresh, "Pink Sample", 50, 8*8, 400*400, HUE_TRACK); //frame, thresh, type, max_obj, min_area, max_area, show hue track
     }
-    else if (inData.vision_state==2)
+    else if (inData.vision_state==2) //vision state
     {
+    	cv::Mat thresh = filterWhite(cv_ptr->image, 220, 255, 3, 3, 5, THRE_IMAGE); //frame, min_thresh, max_thresh, thresh_type, erode, dilate, filter, show thresh
     }
     else
     {
