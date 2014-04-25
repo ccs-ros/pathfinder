@@ -4,6 +4,7 @@
 #include <armadillo>
 #include <stdint.h>
 #include <computer_vision/Beacon.h>
+#include <path_planning/State.h>
 #include <math.h>
 
 using namespace std;
