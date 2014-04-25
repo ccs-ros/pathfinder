@@ -107,6 +107,7 @@ int main(int argc, char **argv)
 
 	//State
 	static int state = 0;
+	static int vision_state = 0;
 	static int object_seen_counter = 0;
 	static int beacon_seen_counter = 0;
 	//static int gimbal_incremental angle;
@@ -220,12 +221,13 @@ int main(int argc, char **argv)
 
 		outData.cont_1_motor_1_speed_cmd=front_left_motor_speed;
 		outData.cont_1_motor_2_speed_cmd=rear_left_motor_speed;
-    		outData.cont_2_motor_1_speed_cmd=front_right_motor_speed;
-    		outData.cont_2_motor_2_speed_cmd=rear_right_motor_speed;
+		outData.cont_2_motor_1_speed_cmd=front_right_motor_speed;
+		outData.cont_2_motor_2_speed_cmd=rear_right_motor_speed;
 
 		outData2.state=state;
-    		//cout << front_left_motor_speed << endl;
-    		pub.publish(outData);
+		outData2.vision_state=vision_state;
+		//cout << front_left_motor_speed << endl;
+		pub.publish(outData);
 		pub2.publish(outData2);
     	
 		ros::spinOnce();
