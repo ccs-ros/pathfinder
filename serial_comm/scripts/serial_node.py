@@ -14,13 +14,13 @@ class Serial_Port:
 		self.ser.flushOutput()
 		node_type = rospy.get_param('node_type', 'mis_det_serial_node')
 		self.comm = serial_comm_class.Serial_Comm(node_type)
-		self.comm.pkt_out.rate_Hz = rospy.get_param('rate_Hz', 10)
+		self.rate_Hz = rospy.get_param('rate_Hz', 10)
 		rospy.init_node(node_type)
 		if (self.comm.reader):
 			self.pub = rospy.Publisher(self.comm.topic_out, self.comm.pkt_in.msg_class) 
 		if (self.comm.writer):
 			self.sub = rospy.Subscriber(self.comm.topic_in, self.comm.pkt_out.msg_class, self.comm.pkt_out.pack_msg2buffer)
-		self.execution_rate = rospy.Rate(self.comm.pkt_out.rate_Hz*2)
+		self.execution_rate = rospy.Rate(self.rate_Hz*2)
 
 
 	def write_buff(self, out_pkt):
@@ -51,15 +51,16 @@ class Serial_Port:
 					if (len(m) != 0) and (ord(m)==self.comm.pkt_in.packet.fields.H2):
 						rospy.loginfo("Read H2")
 						m=self.readChar()
+						rospy.loginfo(ord(m))
 						if (len(m) != 0) and (ord(m)==self.comm.pkt_in.packet.fields.H3):
 							rospy.loginfo("Read H3")
 							i=3
 							size = len(self.comm.pkt_in.packet.buffer)
 							while i < size:
-								rospy.loginfo("Reading %d",i)
+								#rospy.loginfo("Reading %d",i)
 								m=self.readChar()
 								if len(m) != 0:
-									rospy.loginfo("Char read %s",m)
+									#rospy.loginfo("Char read %s",m)
 									n=ord(m)
 								self.comm.pkt_in.packet.buffer[i] = n
 								i=i+1
@@ -72,7 +73,7 @@ class Serial_Port:
 
 			# check for serial output time and write to the port
 			if (self.comm.writer):
-				period = 1/float(self.comm.pkt_out.rate_Hz)
+				period = 1/float(self.rate_Hz)
 				current_time = time.clock()	
 #~~~				rospy.loginfo("writer=True: current=%g, prior=%g, rate=%d, period=%g", current_time, prior_time, self.comm.pkt_out.rate_Hz, period)
 				if (current_time - prior_time) >= period:  

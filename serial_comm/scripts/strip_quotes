@@ -1,0 +1,2 @@
+python /home/mercury/catkin_ws/Util/strip_quotes.py packet_*.py
+

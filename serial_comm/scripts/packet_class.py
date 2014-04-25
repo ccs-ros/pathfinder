@@ -1,14 +1,1 @@
-from ctypes import *
-
-class packet_class:
-
-	class header_type(Structure):
-		_pack_ = 1
-		_fields_ = [("H1",c_ubyte),("H2",c_ubyte),("H3",c_ubyte)]
-
-	class header_union(Union):
-		_fields_ = [("header_buff",c_ubyte*3),("header",header_type)]
-
-	def __init__(self)
-		self.H1 = 'A'
-		self.H2 = 'z'
+from ctypes import *class Packet_Class:	#***************************************************************************	#* method compute_checksum	#*	#* Description: computes a simple sum of the elements of the passed buffer	#*              array of c_ubyte, except for the last byte (assumed to be chksum value),	#*              and ignores any overflow	#***************************************************************************	def compute_checksum(self):		checksum = c_ubyte(0)		#print 'packet length = {0:d}'.format(len(self.packet.buffer))		for i in range(0,len(self.packet.buffer)-2):			#print 'current checksum value = {0:d}, element#= {1:d}, packet element = {2:d}'.format(checksum.value, i, self.packet.buffer[i])			checksum.value = 255 & (checksum.value + self.packet.buffer[i])		return checksum	#***************************************************************************	#* method valid_checksum	#*	#* Description: compares the last byte of buffer array of c_ubyte 	#*              to a computed checksum	#***************************************************************************	def valid_checksum(self):		if (self.packet.fields.checksum == self.compute_checksum().value):			return True		else:			return False				#***************************************************************************	#* method initialize_packet	#*	#* Description: sets the three header bytes = Azn, where n = input pkt_num parameter 	#*              also computes and stores a valid initial checksum	#***************************************************************************	def initialize_packet(self,pkt_num):		self.packet.fields.H1 = 65  # 'A'		self.packet.fields.H2 = 122 # 'z'		self.packet.fields.H3 = pkt_num		self.packet.fields.counter = 0		self.packet.fields.checksum = self.compute_checksum().value	#***************************************************************************	#* method increment_counter	#*	#* Description: increments the packet counter field	#*              	#***************************************************************************	def increment_counter(self):		self.packet.fields.counter = self.packet.fields.counter + 1

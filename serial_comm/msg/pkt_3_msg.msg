@@ -1,0 +1,17 @@
+uint16 counter
+uint16 time
+int32 Acceleration_x
+int32 Acceleration_y
+int32 Acceleration_z
+int32 Rate_p
+int32 Rate_q
+int32 Rate_r
+uint16 A2D_1
+uint16 A2D_2
+uint16 A2D_3
+uint16 A2D_4
+uint16 A2D_5
+uint16 A2D_6
+uint16 A2D_7
+uint16 A2D_8
+uint8 status

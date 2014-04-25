@@ -1,0 +1,13 @@
+uint16 counter
+uint16 time
+uint8 Cam-Obj_type
+uint8 Obj_detection_conf
+int16 Obj_distance
+int16 Obj_bearing
+uint16 Obj_distance_conf
+uint16 Obj_bearing_conf
+int16 Obj_orientation1
+int16 Obj_orientation2
+uint16 Obj_orientation1_conf
+uint16 Obj_orientation2_conf
+uint8 status

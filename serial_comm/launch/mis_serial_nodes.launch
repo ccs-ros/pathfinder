@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find serial_comm)/launch/mis_det_serial_node.launch" />
+  <include file="$(find serial_comm)/launch/mis_nb1_serial_node.launch" />
+  <include file="$(find serial_comm)/launch/mis_nb2_serial_node.launch" />
+  <include file="$(find serial_comm)/launch/mis_sib_serial_node.launch" />
+</launch>

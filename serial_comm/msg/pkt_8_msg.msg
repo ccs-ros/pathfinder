@@ -1,0 +1,26 @@
+uint16 counter
+uint16 time
+int16 acceleration_x
+int16 acceleration_y
+int16 acceleration_z
+int16 rate_p
+int16 rate_q
+int16 rate_r
+int16 A2D_1
+int16 A2D_2
+int16 A2D_3
+int16 A2D_4
+int16 A2D_5
+int16 A2D_6
+int16 A2D_7
+int16 A2D_8
+uint16 laser_1
+uint16 laser_2
+int16 speed_controller_1
+int16 speed_controller_2
+int16 speed_controller_3
+int16 speed_controller_4
+uint8 switches
+uint8 voltage
+uint8 status
+

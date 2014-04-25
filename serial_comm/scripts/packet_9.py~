@@ -1,22 +1,22 @@
 from ctypes import *
 from packet_class import *
-from serial_comm.msg import pkt_8_msg
+from serial_comm.msg import pkt_9_msg
 
 
-class Packet_8_Type(Structure):
+class Packet_9_Type(Structure):
 	_pack_ = 1
 	_fields_ = [("H1",c_ubyte),("H2",c_ubyte),("H3",c_ubyte),("counter",c_ushort),("time",c_ushort),("acceleration_x",c_short),("acceleration_y",c_short),("acceleration_z",c_short),("rate_p",c_short),("rate_q",c_short),("rate_r",c_short),("A2D_1",c_short),("A2D_2",c_short),("A2D_3",c_short),("A2D_4",c_short),("A2D_5",c_short),("A2D_6",c_short),("A2D_7",c_short),("A2D_8",c_short),("laser_1",c_ushort),("laser_2",c_ushort),("speed_controller_1",c_short),("speed_controller_2",c_short),("speed_controller_3",c_short),("speed_controller_4",c_short),("switches",c_ubyte),("voltage",c_ubyte),("status",c_ubyte),("reserved",c_ubyte*13),("checksum",c_ubyte)]
 
-class Packet_8_Buff(Union):
-	_fields_ = [("buffer",c_ubyte*64),("fields",Packet_8_Type)]
+class Packet_9_Buff(Union):
+	_fields_ = [("buffer",c_ubyte*64),("fields",Packet_9_Type)]
 
-class Packet_8(Packet_Class):
+class Packet_9(Packet_Class):
 
 	def __init__(self):
-		self.packet = Packet_8_Buff()
-		self.initialize_packet(8)
-		self.msg = pkt_8_msg()
-		self.msg_class = pkt_8_msg
+		self.packet = Packet_9_Buff()
+		self.initialize_packet(9)
+		self.msg = pkt_9_msg()
+		self.msg_class = pkt_9_msg
 		self.rate_Hz = 50
 
 	def unpack_buffer2msg(self):
@@ -52,7 +52,7 @@ class Packet_8(Packet_Class):
 	#* Description: copies msg fields into packet structure,
 	#*              and assigns a computed checksum to the last byte
 	#***************************************************************************
-	def pack_msg2buffer(self,in_msg):
+	def pack_msg2buffer(self, in_msg):
 #		self.packet.fields.counter            = in_msg.counter
 		self.packet.fields.time               = in_msg.time
 		self.packet.fields.acceleration_x     = in_msg.acceleration_x

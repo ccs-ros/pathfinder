@@ -1,0 +1,14 @@
+<launch>
+	<param name="port_path" 
+		type="str" 
+		value="/dev/ttyS0" />
+	<param name="node_type" 
+		type="str" 
+		value="det_mis_serial_node" />
+	<param name="rate_Hz" 
+		type="int" 
+		value="10" />
+	<node name="det_mis_serial_node"
+        pkg="serial_comm" 
+        type="serial_node.py" />
+</launch>

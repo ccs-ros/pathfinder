@@ -1,0 +1,10 @@
+uint16 counter
+uint16 time
+int16 Angle_1
+int16 Angle_2
+int16 Angle_3
+int16 Desired_Angle_1
+int16 Desired_Angle_2
+int16 Desired_Angle_3
+uint8 Mode
+uint8 status

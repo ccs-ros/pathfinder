@@ -1,81 +1,58 @@
 #!/usr/bin/env python
-#import packet_1
-#import packet_2
-#import packet_3
-#import packet_4
-#import packet_5
+import packet_1
+import packet_2
+import packet_3
+import packet_4
+import packet_5
 #import packet_6
 #import packet_7
-import packet_8
-import packet_9
 
-class serial_comm:
-	# Constructor configures port buffers and msg type per node type
+class Serial_Comm:
+	# Constructor/initializer configures port buffers and msg type per node type
 	def __init__(self, node_type):
-		if node_type == 'mis_nav':
-#~~~			pub = rospy.Publisher('nav_in_data',packet1)
-#~~~			sub = rospy.Subscriber('nav_out_data',packet3)
-			self.pkt_in = packet_1()
-			self.topic_out = 'nav_in_data'
-			self.msg_out = pkt_1_msg()
-			self.topic_in = 'nav_out_data'
-			self.msg_in = pkt_3_msg()
-			self.pkt_out = packet_3()
-		else if node_type == 'mis_det':
-#~~~			pub = rospy.Publisher('det_in_data',packet2)
-#~~~			sub = rospy.Subscriber('det_out_data',packet3)
-			self.pkt_in = packet_2()
-			self.topic_out = 'det_in_data'
-			self.msg_out = pkt_2_msg()
-			self.topic_in = 'det_out_data'
-			self.msg_in = pkt_3_msg()
-			self.pkt_out = packet_3()
-		else if node_type == 'nav_mis':
-#~~~			pub = rospy.Publisher('mis_in_data',packet3)
-#~~~			sub = rospy.Subscriber('mis_out_data',packet1)
-			self.pkt_in = packet_3()
-			self.topic_out = 'mis_in_data'
-			self.msg_out = pkt_3_msg()
-			self.topic_in = 'mis_out_data'
-			self.msg_in = pkt_1_msg()
-			self.pkt_out = packet_1()
-		else if node_type == 'nav_det':
-#~~~			sub = rospy.Subscriber('det_out_data',packet1)
-			self.topic_in = 'det_out_data'
-			self.msg_in = pkt_1_msg()
-			self.pkt_out = packet_1()
-		else if node_type == 'det_mis':
-#~~~			pub = rospy.Publisher('mis_in_data',packet3)
-#~~~			sub = rospy.Subscriber('mis_out_data',packet2)
-			self.pkt_in = packet_3()
-			self.topic_out = 'mis_in_data'
-			self.msg_out = pkt_3_msg()
-			self.topic_in = 'mis_out_data'
-			self.msg_in = pkt_2_msg()
-			self.pkt_out = packet_2()
-		else if node_type == 'nav_NB1':
-#~~~			pub = rospy.Publisher('NB1_in_data',packet4)
-			self.pkt_in = packet_4()
-			self.topic_out = 'NB1_in_data'
-			self.msg_out = pkt_4_msg()
-		else if node_type == 'nav_NB2':
-#~~~			pub rospy.Publisher('NB2_in_data',packet5)
-			self.pkt_in = packet_5()
-			self.topic_out = 'NB2_in_data'
-			self.msg_out = pkt_5_msg()
-		else if node_type == 'nav_sib':
-			self.pkt_in = packet_6()
-			self.topic_out = 'sib_in_data'
-			self.msg_out = pkt_6_msg()
-			self.topic_in = 'sib_out_data'
-			self.msg_in = pkt_7_msg()
-			self.pkt_out = packet_7()
-		else if node_type == 'mis_sib':
-			self.pkt_in = packet_8()
-			self.topic_out = 'sib_in_data'
-			self.msg_out = pkt_8_msg()
-			self.topic_in = 'sib_out_data'
-			self.msg_in = pkt_9_msg()
-			self.pkt_out = packet_9()
-
+		if node_type == 'mis_det_serial_node':
+			self.reader = True
+			self.pkt_in = packet_2.Packet_2()
+			self.topic_out = 'mis/det_in_data'
+			self.msg_out = self.pkt_in.msg
+			self.writer = True
+			self.pkt_out = packet_1.Packet_1()
+			self.topic_in = 'mis/det_out_data'
+			self.msg_in = self.pkt_out.msg
+		elif node_type == 'det_mis_serial_node':
+			self.reader = True
+			self.pkt_in = packet_1.Packet_1()
+			self.topic_out = 'det/mis_in_data'
+			self.msg_out = self.pkt_in.msg
+			self.writer = True
+			self.pkt_out = packet_2.Packet_2()
+			self.topic_in = 'det/mis_out_data'
+			self.msg_in = self.pkt_out.msg
+		elif node_type == 'mis_nb1_serial_node':
+			self.reader = True
+			self.pkt_in = packet_3.Packet_3()
+			self.topic_out = 'mis/nb1_in_data'
+			self.msg_out = self.pkt_in.msg
+			self.writer = False
+		elif node_type == 'mis_nb2_serial_node':
+			self.reader = True
+			self.pkt_in = packet_4.Packet_4()
+			self.topic_out = 'mis/nb2_in_data'
+			self.msg_out = self.pkt_in.msg
+			self.writer = True
+			self.pkt_out = packet_6.Packet_6()
+			self.topic_in = 'mis/nb2_out_data'
+			self.msg_in = self.pkt_out.msg
+		elif node_type == 'mis_sib_serial_node':
+			self.reader = True
+			self.pkt_in = packet_5.Packet_5()
+			self.topic_out = 'mis/sib_in_data'
+			self.msg_out = self.pkt_in.msg
+			self.writer = True
+			self.pkt_out = packet_7.Packet_7()
+			self.topic_in = 'mis/sib_out_data'
+			self.msg_in = self.pkt_out.msg
+#~~~add a default configuration with 'else'
+		else:
+			print "ERROR: Serial_Comm.__init__ --> No node type match."
 
