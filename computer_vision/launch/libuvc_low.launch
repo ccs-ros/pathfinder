@@ -1,0 +1,29 @@
+<launch>
+  <group ns="logitech_c920">
+    <node pkg="libuvc_camera" type="camera_node" name="logitech_c920">
+      <!-- Parameters used to find the camera -->
+      <!-- sudo chown jared /dev/bus/usb/003/009 -->
+      <param name="vendor" value="0x046d"/>
+      <param name="product" value="0x082d"/>
+      <param name="serial" value=""/>
+      <!-- If the above parameters aren't unique, choose the first match: -->
+      <param name="index" value="0"/>
+
+      <!-- Image size and type -->
+      <param name="width" value="1280"/>
+      <param name="height" value="720"/>
+
+      <!-- choose whichever uncompressed format the camera supports: -->
+      <param name="video_mode" value="mjpeg"/> <!-- or yuyv/nv12/jpeg -->
+      <param name="frame_rate" value="10"/>
+
+      <param name="timestamp_method" value="start"/> <!-- start of frame -->
+      <param name="camera_info_url" value="package://computer_vision/c920_intrinsic.yml"/>
+
+      <param name="auto_exposure" value="2"/> <!-- disable auto exposure -->
+      <param name="auto_white_balance" value="false"/>
+	 <param name="auto_hue" value="false"/>
+      <param name="auto_focus" value="true"/> <!-- disable auto focus -->
+    </node>
+  </group>
+</launch>
