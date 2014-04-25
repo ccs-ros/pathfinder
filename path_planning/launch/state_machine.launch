@@ -1,0 +1,20 @@
+<launch>
+	<!--IMU-->
+	<node name="nav_readPubIMUdata_node" pkg="navigation" type="nav_readPubIMUdata_node.py" />
+	<node name="nav_subToIMUdata_node" pkg="navigation" type="nav_subToIMUdata_node.py" />
+	
+	<!--Object Avoidance-->
+
+	<!--Navigation-->
+	<node name="nav_filter_node" pkg="navigation" type="nav_filter_node" />
+	
+	<!--Motors-->
+	<include file="$(find roboteq_interface)/launch/roboteq_1_2.launch" /> 
+	
+	<!--Computer Vision-->
+	<include file="$(find computer_vision)/launch/libuvc_low.launch" />
+	<node name="det_hue_node" pkg="computer_vision" type="det_hue_node" />
+	
+	<!--Path Planning-->
+	<node name="state_machine_node" pkg="path_planning" type="state_machine_node" />
+</launch>

@@ -109,6 +109,10 @@ add_executable(nav_object_avoidance_node src/nav_object_avoidance_node.cpp)
 target_link_libraries(nav_object_avoidance_node ${catkin_LIBRARIES})
 add_dependencies(nav_object_avoidance_node ${catkin_EXPORTED_TARGETS})
 
+add_executable(state_machine_node src/state_machine_node.cpp)
+target_link_libraries(state_machine_node ${catkin_LIBRARIES})
+add_dependencies(state_machine_node ${catkin_EXPORTED_TARGETS})
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(path_planning_node path_planning_generate_messages_cpp)
