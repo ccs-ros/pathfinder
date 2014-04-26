@@ -52,6 +52,7 @@ add_message_files(
    FILES
    Camera.msg
    Beacon.msg
+   Search.msg
 )
 
 ## Generate services in the 'srv' folder

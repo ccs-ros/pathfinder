@@ -26,22 +26,22 @@ class TrackingObject
 	{
 		setType(name);
 		
-		if(name == "SideOne")
+		if(name == "SideOne") //blue
 		{
-			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(180, 256, 256));
+			setHSVmin(cv::Scalar(104, 39, 73));
+			setHSVmax(cv::Scalar(119, 118, 190));
 			setColor(cv::Scalar(255, 0, 0));
 		}
-		else if(name == "SideTwo")
+		else if(name == "SideTwo") //gold
 		{
-			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(180, 256, 256));
+			setHSVmin(cv::Scalar(20, 72, 161));
+			setHSVmax(cv::Scalar(32, 126, 161));
 			setColor(cv::Scalar(0, 0, 255));
 		}
 		else if(name == "Cropped")
 		{
 			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(180, 256, 256));
+			setHSVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Segment")

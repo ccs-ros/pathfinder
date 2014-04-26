@@ -6,6 +6,10 @@ int16 roll
 int16 yaw
 int16 heading
 uint8 object
+uint8 object_type
+uint8 object_area
+uint8 object_x
+uint8 object_y
 uint16 centerx
 uint16 centery
 float32 areaobject

@@ -1,0 +1,15 @@
+uint8 sample_seen
+uint8 sample_type
+uint8 sample_x
+uint8 sample_y
+uint8 sample_area
+uint8 sample_confidence
+float32 sample_distance
+float32 sample_angle
+uint8 beacon_seen
+uint8 beacon_x
+uint8 beacon_y
+uint8 beacon_area
+uint8 beacon_confidence
+float32 beacon_angle
+float32 beacon_distance
