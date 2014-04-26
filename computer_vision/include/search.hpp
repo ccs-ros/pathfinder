@@ -30,48 +30,96 @@ class TrackingObject
 		{
 			setHSVmin(cv::Scalar(104, 39, 73));
 			setHSVmax(cv::Scalar(119, 118, 190));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(255, 0, 0));
 		}
 		else if(name == "SideTwo") //gold
 		{
 			setHSVmin(cv::Scalar(20, 72, 161));
 			setHSVmax(cv::Scalar(32, 126, 161));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));
+		}
+		else if(name == "Pre-Cached")
+		{
+			setHSVmin(cv::Scalar(0, 0, 0));
+			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
+			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Cropped")
 		{
 			setHSVmin(cv::Scalar(0, 0, 0));
 			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Segment")
 		{
 			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(180, 256, 256));
+			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Red Ball")
 		{
-			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(180, 256, 256));
+			setHSVmin(cv::Scalar(115, 134, 0));
+			setHSVmax(cv::Scalar(217, 255, 255));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Blue Sample")
 		{
-			setHSVmin(cv::Scalar(167, 95, 153));
-			setHSVmax(cv::Scalar(196, 215, 222));
+			setHSVmin(cv::Scalar(104, 39, 73));
+			setHSVmax(cv::Scalar(119, 118, 190));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Pink Sample")
 		{
 			setHSVmin(cv::Scalar(167, 95, 153));
 			setHSVmax(cv::Scalar(196, 215, 222));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Red Sample")
 		{
 			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(180, 256, 256));
+			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
+			setColor(cv::Scalar(0, 0, 255));		
+		}
+		else if(name == "Orange Sample")
+		{
+			setHSVmin(cv::Scalar(0, 0, 0));
+			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
+			setColor(cv::Scalar(0, 0, 255));		
+		}
+		else if(name == "Wood Sample")
+		{
+			setHSVmin(cv::Scalar(0, 0, 0));
+			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
+			setColor(cv::Scalar(0, 0, 255));		
+		}
+		else if(name == "Brass Sample")
+		{
+			setHSVmin(cv::Scalar(0, 0, 0));
+			setHSVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(0, 0, 0));
+			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 	}
@@ -87,9 +135,15 @@ class TrackingObject
 
 	cv::Scalar getHSVmin() {return HSVmin;}
 	cv::Scalar getHSVmax() {return HSVmax;}
+	
+	cv::Scalar getYUVmin() {return YUVmin;}
+	cv::Scalar getYUVmax() {return YUVmax;}
 
 	void setHSVmin(cv::Scalar min) {HSVmin=min;}
 	void setHSVmax(cv::Scalar max) {HSVmax=max;}
+	
+	void setYUVmin(cv::Scalar min) {YUVmin=min;}
+	void setYUVmax(cv::Scalar max) {YUVmax=max;}
 
 	std::string getType() {return type;}
 	void setType(std::string t) {type = t;}
@@ -104,6 +158,7 @@ class TrackingObject
 	int xPos, yPos, area, areaObj;
 	string type;
 	cv::Scalar HSVmin, HSVmax;
+	cv::Scalar YUVmin, YUVmax;
 	cv::Scalar Color;
 	vector<cv::Rect> boundingRectangle;
 };

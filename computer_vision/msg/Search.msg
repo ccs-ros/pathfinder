@@ -13,3 +13,11 @@ uint8 beacon_area
 uint8 beacon_confidence
 float32 beacon_angle
 float32 beacon_distance
+uint8 landmark_seen
+uint8 landmark_type
+uint8 landmark_x
+uint8 landmark_y
+uint8 landmark_area
+uint8 landmark_confidence
+float32 landmark_angle
+float32 landmark_distance
