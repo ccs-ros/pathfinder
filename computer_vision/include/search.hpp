@@ -14,6 +14,8 @@
 #include <opencv2/calib3d/calib3d.hpp>			//camera calibration and 3d reconstruction
 #include <opencv2/legacy/legacy.hpp>			//brute force matching
 
+#define PI 3.14159265359
+
 using namespace std;
 
 class TrackingObject
@@ -92,8 +94,8 @@ class TrackingObject
 		}
 		else if(name == "Red Sample")
 		{
-			setHSVmin(cv::Scalar(0, 0, 0));
-			setHSVmax(cv::Scalar(0, 0, 0));
+			setHSVmin(cv::Scalar(136, 146, 48));
+			setHSVmax(cv::Scalar(204, 244, 152));
 			setYUVmin(cv::Scalar(0, 0, 0));
 			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
@@ -346,4 +348,45 @@ vector <TrackingObject> findCandidates(const cv::Mat &frame, const cv::Mat imgTh
     if(DRAW_HUE_TRACKING) drawHueDetection(frame, Segments, 1);
     
     return Segments;
+}
+
+float findHomingBearing(vector <TrackingObject> Objects)
+{
+	/* Created on 4/28/14
+	 * Calculates the bearing based on the height to side/2 ratio of the
+	 * triangle created by the coordinates of the homing beacon vertices
+	 */
+	//Store coordinates into vector
+	arma::vec x, y;
+	x << Objects[0].getxPos() << Objects[1].getxPos() << Objects[2].getxPos();
+	y << Objects[0].getyPos() << Objects[1].getyPos() << Objects[2].getyPos();
+	
+	//Organize triangle vertices
+	float x1, x2, x3, y1, y2, y3;
+	arma::uvec idx1, idx2, idx3;
+	idx1 = arma::find(x==x.min());
+	x1 = x(idx1(0));
+	y1 = y(idx1(0));
+	idx2 = arma::find(y==y.max());
+	x2 = x(idx2(0));
+	y2 = y(idx2(0));
+	idx3 = arma::find(x==x.max());
+	x3 = x(idx3(0));
+	y3 = y(idx3(0));
+
+	//cout << "x=" << x1 << "," << x2 << "," << x3 << endl;
+
+	//Find ratio
+	float midX, midY, s, h, r, R;
+	midX = (x3+x1)/2;
+	midY = (y3+y1)/2;
+	R = 2/(tan(PI/3));
+	h = sqrt((midX-x2)*(midX-x2)+(midY-y2)*(midY-y2));
+	s = sqrt((x3-x1)*(x3-x1)+(y3-y1)*(y3-y1));
+	r = s/h;
+	
+	//cout << "r = " << r << endl;
+
+	//return bearing
+	return acos(r/R);
 }
