@@ -112,7 +112,11 @@ int main(int argc, char **argv)
 	const long int wheel_max = 2147483647;
 	
 	// Initial Conditions
-	arma::mat Q_eq_IMU = 0.035*arma::eye<arma::mat>(6,6);
+	arma::mat Q_eq_IMU = 0.035*arma::eye<arma::mat>(6,6);//0.035
+	Q_eq_IMU(3,3)=1e-6;
+	Q_eq_IMU(4,4)=1e-6;
+	Q_eq_IMU(5,5)=1e-6;
+
 	arma::mat P = arma::eye<arma::mat>(5,5);
 	
 	float V_prev = 0.0;
@@ -178,7 +182,8 @@ int main(int argc, char **argv)
     	
     
     	//Velocity integration and covariance
-		V = V_prev+Ts*inData.ax;
+		V = V_prev+Ts*(inData.ax-sin(theta)*32.2*12);
+		//V = V_prev+Ts*((cos(psi)*cos(theta)*inData.ax)+(-sin(psi)*cos(phi)+cos(psi)*sin(theta)*sin(phi))*inData.ay+(sin(psi)*sin(phi)+cos(psi)*sin(theta)*cos(phi))*inData.az);	
 		P_v = P_v_prev+Ts*Ts*Q_eq_IMU(0,0);
 		
 		//Number of encoder counts since last loop
@@ -238,13 +243,13 @@ int main(int argc, char **argv)
 		P_v_thresh = 2*(P_v+Q_WE+Q_eq_IMU(3,3)*dist_W*dist_W/4);
 		Q_r_thresh = 4*(Q_WE+Q_eq_IMU(3,3)*dist_W*dist_W/4);
 		
-		
+		/*
 		//Check for individual wheel slip from encoders/IMU integration
 		if(abs(V-WE1_pred_V)>P_v_thresh || min(abs(WE1_pred_V-WE2_pred_V), abs(WE1_pred_V-WE4_pred_V))>Q_r_thresh) Slip1=0; //FL wheel
 		if(abs(V-WE2_pred_V)>P_v_thresh || min(abs(WE2_pred_V-WE1_pred_V), abs(WE2_pred_V-WE3_pred_V))>Q_r_thresh) Slip2=0; //FR wheel
 		if(abs(V-WE3_pred_V)>P_v_thresh || min(abs(WE3_pred_V-WE2_pred_V), abs(WE3_pred_V-WE4_pred_V))>Q_r_thresh) Slip3=0; //BL wheel
 		if(abs(V-WE4_pred_V)>P_v_thresh || min(abs(WE4_pred_V-WE1_pred_V), abs(WE4_pred_V-WE3_pred_V))>Q_r_thresh) Slip4=0; //BR wheel
-		
+		*/
 		
 		if (Slip1 + Slip3 != 0 && Slip2 + Slip4 != 0) 
 		{

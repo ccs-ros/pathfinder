@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 		if(state==0)//Drive to initial polar distance
 		{
     			driveStraight(500);
-    			if(inData.distance>=1100) state=1;
+    			if(inData.distance>=1100) state=80;
     			else state=0;
 		}
 		/*
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 		else//Stop at beacon
 		{
 			driveStraight(0);
-			state=9;
+			//state=9;
 		}
 
 		outData.cont_1_motor_1_speed_cmd=front_left_motor_speed;
