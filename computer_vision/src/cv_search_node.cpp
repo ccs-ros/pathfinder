@@ -148,9 +148,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 			
 			if(SideOnes.size()>=1) //Found at least one blue object
 			{
-				if(Sideones.size()==3)
+				if(SideOnes.size()==3)
 				{		
-					float B = findHomingBearing(SideoOnes);
+					float B = findHomingBearing(SideOnes);
 					cout << "bearing = " << 180/PI*B << endl;
 				}
 				else ROS_WARN("Need exactly 3 objects to calculate bearing!");
