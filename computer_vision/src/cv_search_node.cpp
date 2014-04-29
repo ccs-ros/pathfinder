@@ -6,11 +6,13 @@
 #include <computer_vision/Search.h>				//message containing sample and beacon structure
 #include <search.hpp>							//custom header containing search functions
 
+#define PI 3.14159265359
+
 using namespace std;
 namespace enc = sensor_msgs::image_encodings;
 
 //Debugging
-const bool HZ = 1; //Print sampling rate
+const bool HZ = 0; //Print sampling rate
 
 //Show Images
 const int ORIG_IMAGE = 1;
@@ -29,7 +31,7 @@ class State //Class containing callback function for data coming into node
 
 	uint8_t state, vision_state;
 
-	State() : state(0), vision_state(1)
+	State() : state(0), vision_state(2)
 	{
     	ros::NodeHandle node;
     	sub = node.subscribe(STATE_TOPIC, 1, &State::getData1Callback, this);
@@ -44,7 +46,6 @@ class State //Class containing callback function for data coming into node
 
 //Global
 ros::Publisher pub;
-State inData; //vision_state 1 pre-cached, 2 sample, 3 homing
 computer_vision::Search outData;
 
 //Function headers
@@ -80,7 +81,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 	
 	//structures for subscribing and publishing
 	cv_bridge::CvImagePtr cv_ptr;
-	
+	State inData; //vision_state 1 pre-cached, 2 sample, 3 homing
+
 	//Initialize outputs
 	outData.beacon_seen=0;
 	outData.sample_seen=0;
@@ -109,15 +111,15 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
     	{
     		outData.sample_seen=1;
     		outData.sample_type=0;
-			outData.sample_x=PreCachs[0].getxPos();
-			outData.sample_y=PreCachs[0].getyPos();
-			outData.sample_area=PreCachs[0].getarea();
+		outData.sample_x=PreCachs[0].getxPos();
+		outData.sample_y=PreCachs[0].getyPos();
+		outData.sample_area=PreCachs[0].getarea();
     	}
     }
     else if (inData.vision_state==2) //sample search
     {
     	//sample strucutre
-    	TrackingObject sample("SideOne");
+    	TrackingObject sample("Red Sample");
     	vector <TrackingObject> samples;
     	
     	//find hues
@@ -146,6 +148,13 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 			
 			if(SideOnes.size()>=1) //Found at least one blue object
 			{
+				if(Sideones.size()==3)
+				{		
+					float B = findHomingBearing(SideoOnes);
+					cout << "bearing = " << 180/PI*B << endl;
+				}
+				else ROS_WARN("Need exactly 3 objects to calculate bearing!");
+
 				outData.beacon_seen=1;
 				outData.beacon_x=SideOnes[0].getxPos();
 				outData.beacon_y=SideOnes[0].getyPos();
