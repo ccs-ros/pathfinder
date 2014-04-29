@@ -31,7 +31,7 @@ class State //Class containing callback function for data coming into node
 
 	uint8_t state, vision_state;
 
-	State() : state(0), vision_state(2)
+	State() : state(0), vision_state(3)
 	{
     	ros::NodeHandle node;
     	sub = node.subscribe(STATE_TOPIC, 1, &State::getData1Callback, this);
@@ -139,7 +139,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 		if(redBalls.size()>=1) //Found at least three red objects
 		{
 			//blue object structure
-			TrackingObject SideOne("SideOne");
+			TrackingObject SideOne("Red Ball");
 			vector <TrackingObject> SideOnes;
 			
     		//find blue object
@@ -148,9 +148,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 			
 			if(SideOnes.size()>=1) //Found at least one blue object
 			{
-				if(Sideones.size()==3)
+				if(SideOnes.size()==3)
 				{		
-					float B = findHomingBearing(SideoOnes);
+					float B = findHomingBearing(SideOnes, 3.67); //objects, focal_length
 					cout << "bearing = " << 180/PI*B << endl;
 				}
 				else ROS_WARN("Need exactly 3 objects to calculate bearing!");

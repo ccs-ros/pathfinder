@@ -112,7 +112,7 @@ include_directories(
 
 ## Declare a cpp executable
 add_executable(cv_search_node src/cv_search_node.cpp)
-target_link_libraries(cv_search_node ${catkin_LIBRARIES})
+target_link_libraries(cv_search_node ${catkin_LIBRARIES} armadillo lapack blas)
 add_dependencies(cv_search_node ${catkin_EXPORTED_TARGETS})
 
 add_executable(cv_calibration_node src/cv_calibration_node.cpp)

@@ -70,8 +70,10 @@ class TrackingObject
 		}
 		else if(name == "Red Ball")
 		{
-			setHSVmin(cv::Scalar(115, 134, 0));
-			setHSVmax(cv::Scalar(217, 255, 255));
+			//setHSVmin(cv::Scalar(115, 134, 0));
+			//setHSVmax(cv::Scalar(217, 255, 255));
+			setHSVmin(cv::Scalar(0, 100, 94)); //paper red
+			setHSVmax(cv::Scalar(202, 226, 134)); //paper red
 			setYUVmin(cv::Scalar(0, 0, 0));
 			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));		
@@ -350,43 +352,169 @@ vector <TrackingObject> findCandidates(const cv::Mat &frame, const cv::Mat imgTh
     return Segments;
 }
 
-float findHomingBearing(vector <TrackingObject> Objects)
+//Function to find Lenght of sides of triangle
+double DistanceTwoPoints(double x1, double y1, double x2, double y2)
+{
+    double x, y, distance;
+    x = x2 - x1;
+    y = y2 - y1;
+    distance = x*x + y*y;
+    distance = sqrt(distance);
+    return distance;
+}
+
+//Calculate angle of triangle given three coordinates c++ code
+void TriangleAngleCalculation(double x1, double y1, double x2, double y2, double x3, double y3)
+{
+    double a, b, c;
+    double A, B, C;
+    double total;
+
+    int largestLength = 0;
+    a = DistanceTwoPoints(x3, y3, x2, y2);
+    b = DistanceTwoPoints(x1, y1, x3, y3);
+    c = DistanceTwoPoints(x1, y1, x2, y2);
+    
+    A=acos((b*b+c*c-a*a)/(2*b*c));
+    B=acos((a*a+c*c-b*b)/(2*a*c));
+    C=acos((a*a+b*b-c*c)/(2*a*b));
+    cout << "Angle = (" << A*(180/PI) << ", " << B*(180/PI) << ", " << C*(180/PI) << ")" << endl;
+}
+
+float findHomingBearing(vector <TrackingObject> Objects, float focal_length)
 {
 	/* Created on 4/28/14
-	 * Calculates the bearing based on the height to side/2 ratio of the
-	 * triangle created by the coordinates of the homing beacon vertices
+	 * Calculates the bearing based on the homing beacon vertices
 	 */
+
 	//Store coordinates into vector
-	arma::vec x, y;
-	x << Objects[0].getxPos() << Objects[1].getxPos() << Objects[2].getxPos();
-	y << Objects[0].getyPos() << Objects[1].getyPos() << Objects[2].getyPos();
-	
+	arma::vec u, v;
+	u << Objects[0].getxPos() << Objects[1].getxPos() << Objects[2].getxPos();
+	v << Objects[0].getyPos() << Objects[1].getyPos() << Objects[2].getyPos();
+
 	//Organize triangle vertices
-	float x1, x2, x3, y1, y2, y3;
+	float u1, u2, u3, v1, v2, v3;
 	arma::uvec idx1, idx2, idx3;
-	idx1 = arma::find(x==x.min());
-	x1 = x(idx1(0));
-	y1 = y(idx1(0));
-	idx2 = arma::find(y==y.max());
-	x2 = x(idx2(0));
-	y2 = y(idx2(0));
-	idx3 = arma::find(x==x.max());
-	x3 = x(idx3(0));
-	y3 = y(idx3(0));
+	idx1 = arma::find(u==u.min());
+	u1 = (u(idx1(0))-320)/focal_length;
+	v1 = (v(idx1(0))-240)/focal_length;
+	idx3 = arma::find(v==v.max());
+	u3 = (u(idx3(0))-320)/focal_length;
+	v3 = (v(idx3(0))-240)/focal_length;
+	idx2 = arma::find(u==u.max());
+	u2 = (u(idx2(0))-320)/focal_length;
+	v2 = (v(idx2(0))-240)/focal_length;
 
-	//cout << "x=" << x1 << "," << x2 << "," << x3 << endl;
-
+	//cout << "u=" << u1 << "," << u2 << "," << u3 << endl;
+/*
 	//Find ratio
-	float midX, midY, s, h, r, R;
-	midX = (x3+x1)/2;
-	midY = (y3+y1)/2;
+	float midU, midV, s, h, r, R, bearing;
+	midU = (u3+u1)/2;
+	midV = (v3+v1)/2;
 	R = 2/(tan(PI/3));
-	h = sqrt((midX-x2)*(midX-x2)+(midY-y2)*(midY-y2));
-	s = sqrt((x3-x1)*(x3-x1)+(y3-y1)*(y3-y1));
+	h = sqrt((midX-u2)*(midX-u2)+(midY-v2)*(midY-v2));
+	s = sqrt((u3-u1)*(u3-u1)+(v3-v1)*(v3-v1));
 	r = s/h;
-	
-	//cout << "r = " << r << endl;
+	if (r/R<1) bearing = acos(r/R);
+	else bearing = 0; 
+*/
 
-	//return bearing
-	return acos(r/R);
+/*
+	//Find interior angles
+	TriangleAngleCalculation(u1, v1, u2, v2, u3, v3);
+*/
+float xa, xb, xc, ya, yb, yc, S1, S2, S3;
+xa = -103.98;
+xb = 103.98;
+xc = 0;
+ya = 103.98/3*sqrt(3);
+yb = 103.98/3*sqrt(3);
+yc = -(2*103.98)/3*sqrt(3);
+S1 = sqrt((xa-xb)*(xa-xb)+(ya-yb)*(ya-yb));
+S2 = sqrt((xb-xc)*(xb-xc)+(yb-yc)*(yb-yc));
+S3 = sqrt((xc-xa)*(xc-xa)+(yc-ya)*(yc-ya));
+
+float ua_f, ub_f, uc_f;
+float va_f, vb_f, vc_f;
+/*
+ua_f = u1;
+ub_f = u2;
+uc_f = u3;
+
+
+va_f = v1;
+vb_f = v2;
+vc_f = v3;
+*/
+ua_f = -103.98;
+ub_f = 103.98;
+uc_f = 0;
+
+va_f = 103.98*1/3*sqrt(3);
+vb_f = 103.98*1/3*sqrt(3);
+vc_f = -103.98*2/3*sqrt(3);
+
+arma::vec na, nb, nc;
+na << ua_f << va_f << 1;
+na = na/arma::norm(na);
+nb << ub_f << vb_f << 1;
+nb = nb/arma::norm(nb);
+nc << uc_f << vc_f << 1;
+nc = nc/arma::norm(nc);
+
+float cBeta1, cBeta2, cBeta3;
+cBeta1 = na(0)*nb(0)+na(1)*nb(1)+na(2)*nb(2);
+cBeta2 = nb(0)*nc(0)+nb(1)*nc(1)+nb(2)*nc(2);
+cBeta3 = nc(0)*na(0)+nc(1)*na(1)+nc(2)*na(2);
+cout << "cB =" << cBeta1 << endl;
+
+arma::vec X, X0, FX;
+X << 0 << 5;
+X0 << 0 << 10;
+FX << 10 << 10 << 10;
+
+short int count = 0;
+
+float x, z, dxa, dxb, dxc, a, b, c, eq1, eq2, eq3;
+arma::mat J(3,2);
+
+while (arma::norm(FX)>1e-8 && count<25 && norm(X0-X)>1e-5)
+{
+    count = count+1;
+    X0 = X;
+    x = X(0);
+    z = X(1);
+    
+    dxa = x-xa;
+    dxb = x-xb;
+    dxc = x-xc;
+    
+    a = dxa*dxa+ya*ya+z*z;
+    b = dxb*dxb+yb*yb+z*z;
+    c = dxc*dxc+yc*yc+z*z;
+    
+    eq1 = (a)+(b)-2*sqrt(a)*sqrt(b)*cBeta1-S1*S1;
+    eq2 = (b)+(c)-2*sqrt(b)*sqrt(c)*cBeta2-S2*S2;
+    eq3 = (c)+(a)-2*sqrt(c)*sqrt(a)*cBeta3-S3*S3;
+    
+    FX << eq1 << eq2 << eq3;
+    
+    J << 4*x-2*xa-2*xb-(cBeta1*(2*x-2*xa)*sqrt(b))/sqrt(a)-(cBeta1*(2*x-2*xb)*sqrt(a))/sqrt(b) << 4*z-(2*z*cBeta1*sqrt(b))/sqrt(a)-(2*z*cBeta1*sqrt(a))/sqrt(b) << arma::endr
+      << 4*x-2*xb-2*xc-(cBeta2*(2*x-2*xb)*sqrt(c))/sqrt(b)-(cBeta2*(2*x-2*xc)*sqrt(b))/sqrt(c) << 4*z-(2*z*cBeta2*sqrt(c))/sqrt(b)-(2*z*cBeta2*sqrt(b))/sqrt(c) << arma::endr
+      << 4*x-2*xa-2*xc-(cBeta3*(2*x-2*xa)*sqrt(c))/sqrt(a)-(cBeta3*(2*x-2*xc)*sqrt(a))/sqrt(c) << 4*z-(2*z*cBeta3*sqrt(c))/sqrt(a)-(2*z*cBeta3*sqrt(a))/sqrt(c) << arma::endr;
+    
+    X = X-arma::inv(J.st()*J)*J.st()*FX;
+}
+
+cout << count << endl;
+cout << arma::norm(FX) << endl;
+x = X(0);
+z = X(1);
+
+float d, gamma;
+d = sqrt(x*x+z*z);
+gamma = atan2(x,z);
+cout << d << endl;
+
+	return gamma;
 }
