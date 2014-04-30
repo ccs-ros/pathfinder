@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <path_planning/Avoidance.h>
+#include <computer_vision/Beacon.h>
 #include <vector>
 
 using namespace std;
@@ -12,8 +13,8 @@ class Scan //Class containing callback function for data coming into node
 {
 	public:
   		ros::Subscriber sub1;
-  		float scan_time, range_min, range_max, angle_increment, time_increment, scan_size;
-  		float ranges[], intensities[];
+  		float scan_time, range_min, range_max, angle_increment, time_increment, scan_size, int_size;
+  		float ranges[4000], intensities[4000]; //actual 1041 and 0
 
   		Scan() : scan_time(0), range_min(0), range_max(0), angle_increment(0), time_increment(0)
   		{
@@ -29,6 +30,7 @@ class Scan //Class containing callback function for data coming into node
     		this->angle_increment = msg->angle_increment;
     		this->time_increment = msg->time_increment;
     		this->scan_size = msg->ranges.size();
+		this->int_size = msg->intensities.size();
 
     		for (int i=0; i<msg->ranges.size(); i++) this->ranges[i] = msg->ranges[i];
     		for (int i=0; i<msg->intensities.size(); i++) this->intensities[i] = msg->intensities[i];
@@ -45,10 +47,9 @@ int main(int argc, char **argv)
 	Scan inData; //structure for input data
 	path_planning::Avoidance outData; //structure for current state
 
-	while(inData.scan_time==0) 
+	while(inData.scan_time==0 && ros::ok()) 
 	{
 		ROS_INFO("Waiting for first measurement...");
-		ros::Duration(0.02).sleep();
 		ros::spinOnce();
 	}
 
@@ -58,7 +59,8 @@ int main(int argc, char **argv)
 	while(ros::ok())
 	{	
 		outData.avoidance_state=1;
-		//pub.publish(outData);
+		cout << "size = " << inData.scan_size << ", " << inData.int_size << endl;
+		pub.publish(outData);
 		ros::spinOnce();
 		ros::Duration(0.02).sleep(); 
 	}
