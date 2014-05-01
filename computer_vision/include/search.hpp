@@ -381,7 +381,60 @@ void TriangleAngleCalculation(double x1, double y1, double x2, double y2, double
     cout << "Angle = (" << A*(180/PI) << ", " << B*(180/PI) << ", " << C*(180/PI) << ")" << endl;
 }
 
-float findHomingBearing(vector <TrackingObject> Objects, float focal_length)
+void filterBeaconResults(vector <TrackingObject> red, vector <TrackingObject> blue, int u_thresh)
+{
+	vector <int> idx, mem;
+	vector <float> dists, threshs;
+	float dist;
+	int counter = 0;
+
+	//find all blue objects that have a red object below that is vertically aligned
+	for(int i=0; i<blue.size(); i++) 
+		for(int j=0; j<red.size(); j++) 
+			if(abs(blue[i].getxPos()-red[j].getxPos())<u_thresh && blue[i].getyPos()<red[j].getyPos())
+			{
+				float xtemp = blue[i].getxPos()-red[j].getxPos();
+				float ytemp = blue[i].getyPos()-red[j].getyPos();
+				threshs.push_back(sqrt(xtemp*xtemp+ytemp*ytemp));
+				idx.push_back(i); //remember index
+			}
+
+	//find red object corrsponding to the blue object matching criteria
+	for(int i=0; i<idx.size(); i++)
+	{
+		for(int j=0; j<red.size(); j++)
+		{
+			float xdiff = blue[idx[i]].getxPos()-red[j].getxPos();
+			float ydiff = blue[idx[i]].getyPos()-red[j].getyPos();
+			dist = sqrt(xdiff*xdiff+ydiff*ydiff);
+			if(dist < threshs[i]) //threshold is relative
+			{
+				dists.push_back(dist);
+				mem.push_back(j);
+			}
+		}
+		if(dists.size()>2)
+		{
+			cout << "i = " << i << endl;
+			cout << "Blue = (" << blue[idx[i]].getxPos() << ", " << blue[idx[i]].getyPos() << ")" << endl;
+
+			for(int k=0; k<dists.size(); k++)
+			{
+				cout << "Red" << k << " = (" << red[mem[k]].getxPos() << ", " << red[mem[k]].getxPos() << ")" << endl;
+			}
+			counter++;
+		}
+		else
+		{
+			
+		}
+		
+	}
+
+	cout << counter << " solutions" << endl;
+}
+
+float findHomingBearing(vector <TrackingObject> Objects, float focal_length, int width, int height)
 {
 	/* Created on 4/28/14
 	 * Calculates the bearing based on the homing beacon vertices
@@ -396,14 +449,14 @@ float findHomingBearing(vector <TrackingObject> Objects, float focal_length)
 	float u1, u2, u3, v1, v2, v3;
 	arma::uvec idx1, idx2, idx3;
 	idx1 = arma::find(u==u.min());
-	u1 = (u(idx1(0))-320)/focal_length;
-	v1 = (v(idx1(0))-240)/focal_length;
+	u1 = (u(idx1(0))-width/2)/focal_length;
+	v1 = (v(idx1(0))-height/2)/focal_length;
 	idx3 = arma::find(v==v.max());
-	u3 = (u(idx3(0))-320)/focal_length;
-	v3 = (v(idx3(0))-240)/focal_length;
+	u3 = (u(idx3(0))-width/2)/focal_length;
+	v3 = (v(idx3(0))-height/2)/focal_length;
 	idx2 = arma::find(u==u.max());
-	u2 = (u(idx2(0))-320)/focal_length;
-	v2 = (v(idx2(0))-240)/focal_length;
+	u2 = (u(idx2(0))-width/2)/focal_length;
+	v2 = (v(idx2(0))-height/2)/focal_length;
 
 	//cout << "u=" << u1 << "," << u2 << "," << u3 << endl;
 /*

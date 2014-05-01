@@ -150,7 +150,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 			{
 				if(SideOnes.size()==3)
 				{		
-					float B = findHomingBearing(SideOnes, 3.67); //objects, focal_length
+					float B = findHomingBearing(SideOnes, 3.67, 640, 480); //objects, focal_length
 					cout << "bearing = " << 180/PI*B << endl;
 				}
 				else ROS_WARN("Need exactly 3 objects to calculate bearing!");

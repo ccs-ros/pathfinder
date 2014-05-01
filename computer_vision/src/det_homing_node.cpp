@@ -54,7 +54,7 @@ namespace enc = sensor_msgs::image_encodings;
 //Settings
 const bool DRAW_FOUND_MATCHES = true;
 const bool SHOW_ORIGIONAL_IMAGE = false;
-const bool HZ = false; //print tracking frequency
+const bool HZ = true; //print tracking frequency
 const bool PRINT_POSE = false;
 const bool DEBUG_HOMOGRAPHY = false;
 
@@ -62,7 +62,7 @@ const bool DEBUG_HOMOGRAPHY = false;
 static const string home = getenv("HOME");
 static const char IMAGE_TOPIC[] = "logitech_c920/image_raw";
 static const char OUTPUT_DATA_TOPIC[] = "det/mis_out_data";
-static const string BEACON_IMG_ADDRESS = home + "/catkin_ws/src/computer_vision/images/pcb.png";//idcard2.jpg";
+static const string BEACON_IMG_ADDRESS = home + "/catkin_ws/src/computer_vision/images/bones2.png";//idcard2.jpg";
 static const string BEACON_FILE_ADDRESS = home + "/catkin_ws/src/computer_vision/images/objectData.yml";
 static const char WINDOW[] = "Display (det_homing_node)";
 
@@ -136,7 +136,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 	tempH(2,2) = H.at<double>(2,2);*/
     //if(arma::max(arma::max(tempH))>0.00001) 
     //findRotation(H);
-    
+   /* 
     //estimation structure
     pose_estimate.x=0; pose_estimate.y=0; pose_estimate.z=0;
     pose_estimate.pitch=90; pose_estimate.roll=90; pose_estimate.yaw=90; pose_estimate.heading=45;
@@ -151,7 +151,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 	if(confidence > 0) confidence = confidence - 20;
     
     pub.publish(pose_estimate); //publish data
-    
+    */
     double end = ros::Time::now().toSec(); //stop timer
     if(HZ) ROS_INFO("Sample Rate = %f", 1/(end-begin)); //print execution time
 }
@@ -205,7 +205,7 @@ cv::Mat trackHomingBeacon(const cv::Mat &imgB)
 		}
     }
 	//cout << "Good Matches = " << good_matches.size() << endl;
-    if (good_matches.size() >= 4 && good_matches.size() <= 85) //[8,30]
+    if (good_matches.size() >= 4 && good_matches.size() <= 200) //[8,30]
     {
     	
 		vector<cv::Point2f> obj;
