@@ -5,12 +5,14 @@
 #include <stdint.h>
 #include <computer_vision/Beacon.h>
 #include <path_planning/State.h>
+#include <path_planning/Avoidance.h>
 #include <math.h>
 
 using namespace std;
 
 static const char DATA_TOPIC1[] = "nav/filter_output";
 static const char DATA_TOPIC2[] = "det/mis_out_data";
+static const char DATA_TOPIC3[] = "/object_avoidance";
 static const char OUTPUT_TOPIC1[] = "mis/motor_commands";
 static const char OUTPUT_TOPIC2[] = "mis/state";
 
@@ -52,9 +54,11 @@ class Data //Class containing callback function for data coming into node
 	public:
 	ros::Subscriber sub1;
 	ros::Subscriber sub2;
+	ros::Subscriber sub3;
 	float velocity, deltaD, roll, pitch, yaw, distance, bearing, object_area, beacon_area;
 	uint16_t object_x, object_y, beacon_x, beacon_y;
 	uint8_t object_seen, beacon_seen;
+	uint8_t avoidance_state;
 
 	Data() : velocity(0), deltaD(0), roll(0), pitch(0), yaw(0), distance(0), bearing(0),
 			object_seen(0), object_x(0), object_y(0), beacon_seen(0),
@@ -63,6 +67,7 @@ class Data //Class containing callback function for data coming into node
 		ros::NodeHandle node;
 		sub1 = node.subscribe(DATA_TOPIC1, 1, &Data::getData1Callback, this);
 		sub2 = node.subscribe(DATA_TOPIC2, 1, &Data::getData2Callback, this);
+		sub3 = node.subscribe(DATA_TOPIC3, 1, &Data::getData3Callback, this);
 	}
 
 	void getData1Callback(const navigation::FilterOutput::ConstPtr &msg1) 
@@ -87,16 +92,21 @@ class Data //Class containing callback function for data coming into node
 		this->beacon_y = msg2->beacony;
 		this->beacon_area = msg2->areabeacon;
 	}
+	
+	void getData3Callback(const path_planning::Avoidance::ConstPtr &msg3)
+	{
+		this->avoidance_state=msg3->avoidance_state;
+	}
 };
 
 int main(int argc, char **argv)
 {
 	//Node Initialization
-	ros::init(argc, argv, "nav_testing_node");
+	ros::init(argc, argv, "state_machine_node");
 	ros::NodeHandle nh;
 	ros:: Publisher pub = nh.advertise<roboteq_interface::motor_commands>(OUTPUT_TOPIC1,1);
 	ros:: Publisher pub2 = nh.advertise<path_planning::State>(OUTPUT_TOPIC2,1);
-	ROS_INFO("nav_testing_node running...");
+	ROS_INFO("state_machine_node running...");
     
 	//Output Data
 	roboteq_interface::motor_commands outData;
