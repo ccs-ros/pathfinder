@@ -96,8 +96,16 @@ class TrackingObject
 			//setHSVmax(cv::Scalar(217, 255, 255));
 			setHSVmin(cv::Scalar(0, 100, 94)); //paper red
 			setHSVmax(cv::Scalar(202, 226, 134)); //paper red
-			setYUVmin(cv::Scalar(0, 0, 0));
-			setYUVmax(cv::Scalar(0, 0, 0));
+			setYUVmin(cv::Scalar(35, 103, 170));
+			setYUVmax(cv::Scalar(161, 128, 224));
+			setColor(cv::Scalar(0, 0, 255));		
+		}
+		else if(name == "Blue Side")
+		{
+			setHSVmin(cv::Scalar(93, 33, 113));
+			setHSVmax(cv::Scalar(118, 202, 149));
+			setYUVmin(cv::Scalar(81, 133, 65));
+			setYUVmax(cv::Scalar(183, 167, 135));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Blue Sample")
@@ -254,8 +262,8 @@ void drawHueDetection(const cv::Mat &frame, vector <TrackingObject> &Segments, c
 
 void morphImg(cv::Mat &thresh, const int ERODE_SIZE, const int DILATE_SIZE)
 {
-	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(ERODE_SIZE, ERODE_SIZE));
-	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(DILATE_SIZE, DILATE_SIZE));
+	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(ERODE_SIZE, ERODE_SIZE));
+	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(DILATE_SIZE, DILATE_SIZE));
 
 	erode(thresh, thresh, erodeElement);
 	erode(thresh, thresh, erodeElement);
@@ -425,7 +433,7 @@ void TriangleAngleCalculation(double x1, double y1, double x2, double y2, double
     cout << "Angle = (" << A*(180/PI) << ", " << B*(180/PI) << ", " << C*(180/PI) << ")" << endl;
 }
 
-void filterBeaconResults(vector <TrackingObject> red, vector <TrackingObject> blue, int u_thresh)
+void filterBeaconResults(vector <TrackingObject> &red, vector <TrackingObject> &blue, int u_thresh)
 {
 	vector <int> idx, mem;
 	vector <float> dists, threshs;
@@ -503,8 +511,8 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
 	*/
 
 	//Tolerance values
-	int v_tol = 20;
-	int h_tol = 20;
+	int v_tol = 100;
+	int h_tol = 100;
 	float d_tol = 0.2;
 	vector <float> d_tols;
 
@@ -529,7 +537,7 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
             		xdiff = blue[i].getxPos()-red[j].getxPos();
 				ydiff = blue[i].getyPos()-red[j].getyPos();
             		dist = sqrt(xdiff*xdiff+ydiff*ydiff);
-            		d_tols.push_back(dist+dist*d_tol);
+            		d_tols.push_back(dist+5*dist*d_tol); //*4 due to non-equilateral triangle
             
             		//Candidate indices and error
             		u_err.push_back(blue[i].getxPos()-red[j].getxPos());
