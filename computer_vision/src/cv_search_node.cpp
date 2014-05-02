@@ -118,48 +118,47 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
     }
     else if (inData.vision_state==2) //sample search
     {
-    	//sample strucutre
-    	TrackingObject sample("Red Sample");
-    	vector <TrackingObject> samples;
+		//sample strucutre
+		TrackingObject sample("Red Sample");
+		vector <TrackingObject> samples;
     	
-    	//find hues
-		cv::Mat thresh = filterColors(cv_ptr->image, sample.getHSVmin(), sample.getHSVmax(), 3, 5, 9, THRE_IMAGE); //frame, type, erode, dilate, filter, show thresh
-		samples = findCandidates(cv_ptr->image, thresh, sample.getType(), 50, 8*8, 400*400, HUE_TRACK); //frame, thresh, type, max_obj, min_area, max_area, show hue track
+    		//find hues
+		cv::Mat thresh = filterHSV(cv_ptr->image, sample.getHSVmin(), sample.getHSVmax(), 3, 5, 9, THRE_IMAGE); 
+		samples = findCandidates(cv_ptr->image, thresh, sample.getType(), 50, 8*8, 400*400, HUE_TRACK); 
     }
     else if(inData.vision_state==3) //homing search
     {
     	//red object structure
-    	TrackingObject redBall("Red Ball");
+    	TrackingObject redBall("Red Test");
     	vector <TrackingObject> redBalls; 
     	
-    	//find red objects
-		cv::Mat thresh = filterColors(cv_ptr->image, redBall.getHSVmin(), redBall.getHSVmax(), 3, 5, 9, THRE_IMAGE); //frame, type, erode, dilate, filter, show thresh
-		redBalls = findCandidates(cv_ptr->image, thresh, redBall.getType(), 50, 8*8, 400*400, HUE_TRACK); //frame, thresh, type, max_obj, min_area, max_area, show hue track
+		// Find Red Objects 
+		cv::Mat thresh = filterYUV(cv_ptr->image, redBall.getYUVmin(), redBall.getYUVmax(), 3, 5, 9, THRE_IMAGE); 	
+		redBalls = findCandidates(cv_ptr->image, thresh, redBall.getType(), 50, 8*8, 400*400, HUE_TRACK); 
 		
 		if(redBalls.size()>=1) //Found at least three red objects
 		{
-			//blue object structure
-			TrackingObject SideOne("Red Ball");
-			vector <TrackingObject> SideOnes;
+			TrackingObject blueCenter("Blue Test");
+			vector <TrackingObject> blueCenters;
 			
-    		//find blue object
-			cv::Mat thresh = filterColors(cv_ptr->image, SideOne.getHSVmin(), SideOne.getHSVmax(), 3, 5, 9, THRE_IMAGE); //frame, type, erode, dilate, filter, show thresh
-			SideOnes = findCandidates(cv_ptr->image, thresh, SideOne.getType(), 50, 8*8, 400*400, HUE_TRACK); //frame, thresh, type, max_obj, min_area, max_area, show hue track
+    			// Find Blue Objects 
+			cv::Mat thresh = filterYUV(cv_ptr->image, blueCenter.getYUVmin(), blueCenter.getYUVmax(), 3, 5, 9, THRE_IMAGE); 
+			blueCenters = findCandidates(cv_ptr->image, thresh, blueCenter.getType(), 50, 8*8, 400*400, 0); 
 			
-			if(SideOnes.size()>=1) //Found at least one blue object
-			{
-				if(SideOnes.size()==3)
-				{		
-					float B = findHomingBearing(SideOnes, 3.67, 640, 480); //objects, focal_length
-
+			if(blueCenters.size()>=1) //Found at least one blue object
+			{		
+				redBalls = findBeaconFromHues(redBalls, blueCenters);	
+				if(redBalls.size()==3) 
+				{
+					float B = findHomingBearing(redBalls, 78, 3.67, 640, 480);
 					cout << "bearing = " << 180/PI*B << endl;
 				}
 				else ROS_WARN("Need exactly 3 objects to calculate bearing!");
 
 				outData.beacon_seen=1;
-				outData.beacon_x=SideOnes[0].getxPos();
-				outData.beacon_y=SideOnes[0].getyPos();
-				outData.beacon_area=SideOnes[0].getarea();
+				outData.beacon_x=blueCenters[0].getxPos();
+				outData.beacon_y=blueCenters[0].getyPos();
+				outData.beacon_area=blueCenters[0].getarea();
 			}
 		}
     }

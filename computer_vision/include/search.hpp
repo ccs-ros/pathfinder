@@ -2,7 +2,9 @@
 
 #include <vector> 								//hue detection
 #include <sstream> 								//hue detection
-#include <armadillo>							//linear algebra library
+//#include <armadillo>							//linear algebra library
+#include </usr/include/armadillo>
+//#include <RcppArmadillo.h>
 #include <image_transport/image_transport.h> 	//publush and subscribe to ros images
 #include <cv_bridge/cv_bridge.h> 				//convert between ros and opencv image formats
 #include <sensor_msgs/image_encodings.h> 		//constants for image encoding
@@ -15,6 +17,10 @@
 #include <opencv2/legacy/legacy.hpp>			//brute force matching
 
 #define PI 3.14159265359
+
+#define ARMA_USE_LAPACK
+#define ARMA_USE_BLAS
+#define ARMA_USE_ATLAS
 
 using namespace std;
 
@@ -43,6 +49,22 @@ class TrackingObject
 			setYUVmin(cv::Scalar(0, 0, 0));
 			setYUVmax(cv::Scalar(0, 0, 0));
 			setColor(cv::Scalar(0, 0, 255));
+		}
+		else if(name == "Red Test")
+		{
+			setHSVmin(cv::Scalar(20, 72, 161));
+			setHSVmax(cv::Scalar(32, 126, 161));
+			setYUVmin(cv::Scalar(38, 106, 159));
+			setYUVmax(cv::Scalar(105, 121, 197));
+			setColor(cv::Scalar(0, 0, 255));
+		}
+		else if(name == "Blue Test")
+		{
+			setHSVmin(cv::Scalar(93, 33, 113));
+			setHSVmax(cv::Scalar(118, 202, 149));
+			setYUVmin(cv::Scalar(43, 147, 88));
+			setYUVmax(cv::Scalar(92, 164, 109));
+			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Pre-Cached")
 		{
@@ -243,7 +265,7 @@ void morphImg(cv::Mat &thresh, const int ERODE_SIZE, const int DILATE_SIZE)
 }
 
 //Converts given image to binary image of threshold values
-cv::Mat filterColors(const cv::Mat &frame, cv::Scalar colors_min, cv::Scalar colors_max, const int ERODE_SIZE, const int DILATE_SIZE, const int FILTER_SIZE, const int &SHOW_THRESH_IMAGE)
+cv::Mat filterHSV(const cv::Mat &frame, cv::Scalar colors_min, cv::Scalar colors_max, const int ERODE_SIZE, const int DILATE_SIZE, const int FILTER_SIZE, const int &SHOW_THRESH_IMAGE)
 {
 	//Image variables
 	cv::Mat img;
@@ -253,6 +275,28 @@ cv::Mat filterColors(const cv::Mat &frame, cv::Scalar colors_min, cv::Scalar col
 	else img = frame.clone();
 	
 	cv::cvtColor(img, img, cv::COLOR_BGR2HSV);
+
+	cv::inRange(img, colors_min, colors_max, img); 
+
+	morphImg(img, ERODE_SIZE, DILATE_SIZE);			
+
+	if(SHOW_THRESH_IMAGE) cv::namedWindow("Threshold Image (filterColors)");
+	if(SHOW_THRESH_IMAGE) cv::imshow("Threshold Image (filterColors)", img);
+	
+	return img;
+}
+
+//Converts given image to binary image of threshold values
+cv::Mat filterYUV(const cv::Mat &frame, cv::Scalar colors_min, cv::Scalar colors_max, const int ERODE_SIZE, const int DILATE_SIZE, const int FILTER_SIZE, const int &SHOW_THRESH_IMAGE)
+{
+	//Image variables
+	cv::Mat img;
+
+	//Process source image
+	if(FILTER_SIZE>0) cv::GaussianBlur(frame, img, cv::Size(FILTER_SIZE,FILTER_SIZE), 0); //(9,9), (41,41), (11,11)
+	else img = frame.clone();
+	
+	cv::cvtColor(img, img, cv::COLOR_BGR2YUV);
 
 	cv::inRange(img, colors_min, colors_max, img); 
 
@@ -434,7 +478,143 @@ void filterBeaconResults(vector <TrackingObject> red, vector <TrackingObject> bl
 	cout << counter << " solutions" << endl;
 }
 
-float findHomingBearing(vector <TrackingObject> Objects, float focal_length, int width, int height)
+vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <TrackingObject> blue)
+{
+	/*//For debugging
+	TrackingObject reds, blues;
+	vector <TrackingObject> red, blue;
+	
+	reds.setxPos(50);
+	reds.setyPos(0);
+	red.push_back(reds);
+	reds.setxPos(0);
+	reds.setyPos(519.6152);
+	red.push_back(reds);
+	reds.setxPos(-50);
+	reds.setyPos(-10);
+	red.push_back(reds);
+	reds.setxPos(500);
+	reds.setyPos(100);
+	red.push_back(reds);
+
+	blues.setxPos(0);
+	blues.setyPos(173.20505);
+	blue.push_back(blues);
+	*/
+
+	//Tolerance values
+	int v_tol = 20;
+	int h_tol = 20;
+	float d_tol = 0.2;
+	vector <float> d_tols;
+
+	//Error for confidence calculation
+	vector <float> u_err, blue_err, red_err;
+
+	//Indices for blue candidates
+	vector <int> bdx, rdx;
+
+	//Temporary variables
+	float xdiff, ydiff, vdiff, dist;
+
+	//Find candidates for blue objects
+	for(int i=0; i<blue.size(); i++)
+	{
+		for(int j=0; j<red.size(); j++)
+		{
+			//If the object is algined horizontally and below
+			if(abs(blue[i].getxPos()-red[j].getxPos())<h_tol && blue[i].getyPos()<red[j].getyPos())
+			{
+				//Calculate distance tolerance
+            		xdiff = blue[i].getxPos()-red[j].getxPos();
+				ydiff = blue[i].getyPos()-red[j].getyPos();
+            		dist = sqrt(xdiff*xdiff+ydiff*ydiff);
+            		d_tols.push_back(dist+dist*d_tol);
+            
+            		//Candidate indices and error
+            		u_err.push_back(blue[i].getxPos()-red[j].getxPos());
+            		bdx.push_back(i); //remember blue indices
+            		rdx.push_back(j); //remember red indices
+			}
+		}
+	}
+	
+	vector <float> x_cand, y_cand, sol_mat; //solution vectors
+	vector <int> idx, mem; //indices for red candidates
+	
+	//Find candidates for red objects
+	for(int i=0; i<bdx.size(); i++)
+	{
+		//Find indices from distance tolerance
+		for(int j=0; j<red.size(); j++)
+		{
+			xdiff = blue[bdx[i]].getxPos()-red[j].getxPos();
+			ydiff = blue[bdx[i]].getyPos()-red[j].getyPos();
+			dist = sqrt(xdiff*xdiff+ydiff*ydiff);
+			if(dist<d_tols[i]) mem.push_back(j);
+		}
+		
+		//Find indices for vertical alignments (two points)
+		for(int k=0; k<mem.size(); k++)
+		{	
+			for(int m=0; m<mem.size(); m++)
+			{
+				if(m!=k)
+				{
+					//cout << "mem[k] =" << mem[k] << endl;
+					//cout << "mem[m] =" << mem[m] << endl;
+					vdiff=abs(red[mem[k]].getyPos()-red[mem[m]].getyPos());
+					if(vdiff<h_tol)
+					{
+						//Skip duplicate objects (TODO: improve remove duplicates)
+						for(int p=0; p<x_cand.size(); p++)
+						{
+							if(x_cand[p] != red[mem[m]].getxPos() && y_cand[p] != red[mem[m]].getyPos())
+							{
+								x_cand.push_back(red[mem[m]].getxPos());
+                    				y_cand.push_back(red[mem[m]].getyPos());
+							}
+						}
+						idx.push_back(mem[m]);
+					}
+				}
+			}
+		}
+		
+		idx.push_back(rdx[i]);
+
+		//Indices for all red candidates for blue i
+		if(idx.size()>2)
+		{
+			for(int o=0; o<idx.size(); o++)
+			{
+				x_cand.push_back(red[idx[o]].getxPos());
+				y_cand.push_back(red[idx[o]].getyPos());
+			}
+		}
+
+		idx.clear();
+		mem.clear();
+	}
+	
+	//Return Solution
+	TrackingObject Solution;
+	vector <TrackingObject> Solutions;
+
+	for(int q=0; q<x_cand.size(); q++)
+	{
+		Solution.setxPos(x_cand[q]);
+		Solution.setyPos(y_cand[q]);
+		Solutions.push_back(Solution);
+	}
+
+	cout << "x_cand.size() = " << x_cand.size() << endl;
+	cout << "y_cand.size() = " << y_cand.size() << endl;
+
+	return Solutions;
+}
+
+float findHomingBearing(vector <TrackingObject> Objects, float fov_angle, float focal_length, int width, int height)
 {
 	/* Created on 4/28/14
 	 * Calculates the bearing based on the homing beacon vertices
@@ -445,22 +625,29 @@ float findHomingBearing(vector <TrackingObject> Objects, float focal_length, int
 	u << Objects[0].getxPos() << Objects[1].getxPos() << Objects[2].getxPos();
 	v << Objects[0].getyPos() << Objects[1].getyPos() << Objects[2].getyPos();
 
+	//Calculate scaling factor
+	fov_angle=fov_angle*PI/180;
+	float hyp = focal_length*sin(fov_angle)/sin(PI-(fov_angle+fov_angle/2));
+	float beta = atan2(height/2,width/2);
+	float w2 = sin(beta)*hyp;
+	float s = w2/(width/2); //dist/pixels
+	cout << "hyp,beta,we,s =" <<  hyp << "," << beta << "," << w2 << "," << s << endl;
 	//Organize triangle vertices
-	float u1, u2, u3, v1, v2, v3;
+	double u1, u2, u3, v1, v2, v3;
 	arma::uvec idx1, idx2, idx3;
 	idx1 = arma::find(u==u.min());
-	u1 = (u(idx1(0))-width/2)/focal_length;
-	v1 = (v(idx1(0))-height/2)/focal_length;
+	u1 = (u(idx1(0))-width/2)*s/focal_length;
+	v1 = (v(idx1(0))-height/2)*s/focal_length;
 	idx3 = arma::find(v==v.max());
-	u3 = (u(idx3(0))-width/2)/focal_length;
-	v3 = (v(idx3(0))-height/2)/focal_length;
+	u3 = (u(idx3(0))-width/2)*s/focal_length;
+	v3 = (v(idx3(0))-height/2)*s/focal_length;
 	idx2 = arma::find(u==u.max());
-	u2 = (u(idx2(0))-width/2)/focal_length;
-	v2 = (v(idx2(0))-height/2)/focal_length;
+	u2 = (u(idx2(0))-width/2)*s/focal_length;
+	v2 = (v(idx2(0))-height/2)*s/focal_length;
 
-	//cout << "u=" << u1 << "," << u2 << "," << u3 << endl;
+	cout << "u=" << u1 << "," << u2 << "," << u3 << endl;
 /*
-	//Find ratio
+	//Finds ratio
 	float midU, midV, s, h, r, R, bearing;
 	midU = (u3+u1)/2;
 	midV = (v3+v1)/2;
@@ -476,20 +663,25 @@ float findHomingBearing(vector <TrackingObject> Objects, float focal_length, int
 	//Find interior angles
 	TriangleAngleCalculation(u1, v1, u2, v2, u3, v3);
 */
-float xa, xb, xc, ya, yb, yc, S1, S2, S3;
+
+//If algorithm diverges
+int error;
+
+double xa, xb, xc, ya, yb, yc, S1, S2, S3;
+
 xa = -103.98;
 xb = 103.98;
 xc = 0;
-ya = 103.98/3*sqrt(3);
-yb = 103.98/3*sqrt(3);
+ya = (103.98/3)*sqrt(3);
+yb = (103.98/3)*sqrt(3);
 yc = -(2*103.98)/3*sqrt(3);
 S1 = sqrt((xa-xb)*(xa-xb)+(ya-yb)*(ya-yb));
 S2 = sqrt((xb-xc)*(xb-xc)+(yb-yc)*(yb-yc));
 S3 = sqrt((xc-xa)*(xc-xa)+(yc-ya)*(yc-ya));
 
-float ua_f, ub_f, uc_f;
-float va_f, vb_f, vc_f;
-/*
+double ua_f, ub_f, uc_f;
+double va_f, vb_f, vc_f;
+
 ua_f = u1;
 ub_f = u2;
 uc_f = u3;
@@ -498,28 +690,29 @@ uc_f = u3;
 va_f = v1;
 vb_f = v2;
 vc_f = v3;
-*/
-ua_f = -103.98;
-ub_f = 103.98;
-uc_f = 0;
 
-va_f = 103.98*1/3*sqrt(3);
-vb_f = 103.98*1/3*sqrt(3);
-vc_f = -103.98*2/3*sqrt(3);
+//for debugging
+//ua_f = -103.98;
+//ub_f = 103.98;
+//uc_f = 0;
+//
+//va_f = 103.98*1/3*sqrt(3);
+//vb_f = 103.98*1/3*sqrt(3);
+//vc_f = -103.98*2/3*sqrt(3);
 
 arma::vec na, nb, nc;
 na << ua_f << va_f << 1;
-na = na/arma::norm(na);
+na = na/arma::norm(na,2);
 nb << ub_f << vb_f << 1;
-nb = nb/arma::norm(nb);
+nb = nb/arma::norm(nb,2);
 nc << uc_f << vc_f << 1;
-nc = nc/arma::norm(nc);
+nc = nc/arma::norm(nc,2);
 
-float cBeta1, cBeta2, cBeta3;
+double cBeta1, cBeta2, cBeta3;
 cBeta1 = na(0)*nb(0)+na(1)*nb(1)+na(2)*nb(2);
 cBeta2 = nb(0)*nc(0)+nb(1)*nc(1)+nb(2)*nc(2);
 cBeta3 = nc(0)*na(0)+nc(1)*na(1)+nc(2)*na(2);
-cout << "cB =" << cBeta1 << endl;
+//cout << "cB =" << cBeta1 << endl;
 
 arma::vec X, X0, FX;
 X << 0 << 5;
@@ -528,7 +721,7 @@ FX << 10 << 10 << 10;
 
 short int count = 0;
 
-float x, z, dxa, dxb, dxc, a, b, c, eq1, eq2, eq3;
+double x, z, dxa, dxb, dxc, a, b, c, eq1, eq2, eq3;
 arma::mat J(3,2);
 
 while (arma::norm(FX)>1e-8 && count<25 && norm(X0-X)>1e-5)
@@ -556,18 +749,29 @@ while (arma::norm(FX)>1e-8 && count<25 && norm(X0-X)>1e-5)
       << 4*x-2*xb-2*xc-(cBeta2*(2*x-2*xb)*sqrt(c))/sqrt(b)-(cBeta2*(2*x-2*xc)*sqrt(b))/sqrt(c) << 4*z-(2*z*cBeta2*sqrt(c))/sqrt(b)-(2*z*cBeta2*sqrt(b))/sqrt(c) << arma::endr
       << 4*x-2*xa-2*xc-(cBeta3*(2*x-2*xa)*sqrt(c))/sqrt(a)-(cBeta3*(2*x-2*xc)*sqrt(a))/sqrt(c) << 4*z-(2*z*cBeta3*sqrt(c))/sqrt(a)-(2*z*cBeta3*sqrt(a))/sqrt(c) << arma::endr;
     
+	//X.print("X ");
+	//J.print("J ");
+	//FX.print("FX ");
+	//cout << arma::norm(FX) << endl;
+
+	if(arma::norm(FX)>1e21) {error=1; break;}
+	else error=0;
+
     X = X-arma::inv(J.st()*J)*J.st()*FX;
+	
+	//arma::mat JJ = arma::inv(J.st()*J)*J.st();
+	//JJ.print("JJ = ");
 }
 
-cout << count << endl;
-cout << arma::norm(FX) << endl;
+//cout << count << endl;
+//cout << arma::norm(FX) << endl;
 x = X(0);
 z = X(1);
 
-float d, gamma;
+double d, gamma;
 d = sqrt(x*x+z*z);
 gamma = atan2(x,z);
-cout << d << endl;
+//cout << d << endl;
 
 	return gamma;
 }
