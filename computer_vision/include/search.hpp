@@ -96,16 +96,16 @@ class TrackingObject
 			//setHSVmax(cv::Scalar(217, 255, 255));
 			setHSVmin(cv::Scalar(0, 100, 94)); //paper red
 			setHSVmax(cv::Scalar(202, 226, 134)); //paper red
-			setYUVmin(cv::Scalar(35, 103, 170));
-			setYUVmax(cv::Scalar(161, 128, 224));
+			setYUVmin(cv::Scalar(15, 71, 140)); //46,110,137
+			setYUVmax(cv::Scalar(163, 158, 255));//163,158,255
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Blue Side")
 		{
 			setHSVmin(cv::Scalar(93, 33, 113));
 			setHSVmax(cv::Scalar(118, 202, 149));
-			setYUVmin(cv::Scalar(81, 133, 65));
-			setYUVmax(cv::Scalar(183, 167, 135));
+			setYUVmin(cv::Scalar(185, 117, 0));
+			setYUVmax(cv::Scalar(235, 166, 255));
 			setColor(cv::Scalar(0, 0, 255));		
 		}
 		else if(name == "Blue Sample")
@@ -158,6 +158,9 @@ class TrackingObject
 		}
 	}
 
+	float getErr() {return error;}
+	void setErr(float e) {error=e;}
+
 	int getxPos() {return xPos;}
 	void setxPos(int x) {xPos=x;}
 
@@ -190,6 +193,7 @@ class TrackingObject
 	
 	private:
 	int xPos, yPos, area, areaObj;
+	float error;
 	string type;
 	cv::Scalar HSVmin, HSVmax;
 	cv::Scalar YUVmin, YUVmax;
@@ -486,6 +490,107 @@ void filterBeaconResults(vector <TrackingObject> &red, vector <TrackingObject> &
 	cout << counter << " solutions" << endl;
 }
 
+void simpleFindBeaconFromHues(vector <TrackingObject> red, vector <TrackingObject> blue)
+{
+	//Error for confidence calculation
+	vector <float> u_err, blue_err, red_err;
+
+	//Indices for blue candidates
+	vector <int> bdx1, rdx1, bdx2, rdx2, bdx3, rdx3;
+	float idx, jdx;
+
+	//Temporary variables
+	float xdiff, ydiff, vdiff, dist;
+
+	//Find closest red object below blue object
+	float distMin = 1e10;
+
+	for(int i=0; i<blue.size(); i++)
+	{	
+		idx=-1;
+		jdx=-1;
+		for(int j=0; j<red.size(); j++)
+		{
+			xdiff = blue[i].getxPos()-red[j].getxPos();
+			ydiff = blue[i].getyPos()-red[j].getyPos();
+			dist = sqrt(xdiff*xdiff+ydiff*ydiff);
+
+			if(blue[i].getyPos()<red[j].getyPos() && dist<distMin)
+			{
+				distMin=dist;
+            		idx=i; //remember blue indices
+            		jdx=j; //remember red indices
+			}
+		}
+
+		if(idx != -1 && jdx != -1)
+		{
+			bdx1.push_back(idx); //remember blue indices
+			rdx1.push_back(jdx); //remember red indices
+		}
+	}
+	
+	//Find closest red object above and left
+	distMin = 1e10;
+	for(int i=0; i<blue.size(); i++)
+	{
+		idx=-1;
+		jdx=-1;
+		for(int j=0; j<red.size(); j++)
+		{
+			xdiff = blue[i].getxPos()-red[j].getxPos();
+			ydiff = blue[i].getyPos()-red[j].getyPos();
+			dist = sqrt(xdiff*xdiff+ydiff*ydiff);
+
+			if(blue[i].getxPos()>red[j].getxPos() && blue[i].getyPos()>red[j].getxPos() && dist<distMin)
+			{
+				distMin=dist;
+            		idx=i; //remember blue indices
+            		jdx=j; //remember red indices
+			}
+		}
+
+		if(idx != -1 && jdx != -1)
+		{
+			bdx2.push_back(idx); //remember blue indices
+			rdx2.push_back(jdx); //remember red indices
+		}
+	}
+
+	//Find closest red object above and left
+	distMin = 1e10;
+	for(int i=0; i<blue.size(); i++)
+	{
+		idx=-1;
+		jdx=-1;
+		for(int j=0; j<red.size(); j++)
+		{
+			xdiff = blue[i].getxPos()-red[j].getxPos();
+			ydiff = blue[i].getyPos()-red[j].getyPos();
+			dist = sqrt(xdiff*xdiff+ydiff*ydiff);
+
+			if(blue[i].getxPos()<red[j].getxPos() && blue[i].getyPos()>red[j].getxPos() && dist<distMin)
+			{
+				distMin=dist;
+            		idx=i; //remember blue indices
+            		jdx=j; //remember red indices
+			}
+		}
+
+		if(idx != -1 && jdx != -1)
+		{
+			bdx3.push_back(idx); //remember blue indices
+			rdx3.push_back(jdx); //remember red indices
+		}
+	}
+
+	cout << "bdx1.size(),rdx1.size() = " << bdx1.size() << ", " << rdx1.size() << endl;
+	cout << "bdx2.size(),rdx2.size() = " << bdx2.size() << ", " << rdx2.size() << endl;
+	cout << "bdx3.size(),rdx3.size() = " << bdx3.size() << ", " << rdx3.size() << endl;
+
+	//return Solutions;
+}
+
 vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <TrackingObject> blue)
 {
 	/*//For debugging
@@ -517,7 +622,7 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
 	vector <float> d_tols;
 
 	//Error for confidence calculation
-	vector <float> u_err, blue_err, red_err;
+	vector <float> blue_err, red_err, d_err, cand_err;
 
 	//Indices for blue candidates
 	vector <int> bdx, rdx;
@@ -537,10 +642,10 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
             		xdiff = blue[i].getxPos()-red[j].getxPos();
 				ydiff = blue[i].getyPos()-red[j].getyPos();
             		dist = sqrt(xdiff*xdiff+ydiff*ydiff);
-            		d_tols.push_back(dist+5*dist*d_tol); //*4 due to non-equilateral triangle
+            		d_tols.push_back(dist+3*dist*d_tol); //*4 due to non-equilateral triangle
             
             		//Candidate indices and error
-            		u_err.push_back(blue[i].getxPos()-red[j].getxPos());
+            		blue_err.push_back(blue[i].getxPos()-red[j].getxPos());
             		bdx.push_back(i); //remember blue indices
             		rdx.push_back(j); //remember red indices
 			}
@@ -550,6 +655,10 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
 	vector <float> x_cand, y_cand, sol_mat; //solution vectors
 	vector <int> idx, mem; //indices for red candidates
 	
+	vector< vector<float> > xx, yy, ee;
+	TrackingObject Sol;
+	vector <TrackingObject> Sols;
+
 	//Find candidates for red objects
 	for(int i=0; i<bdx.size(); i++)
 	{
@@ -559,7 +668,11 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
 			xdiff = blue[bdx[i]].getxPos()-red[j].getxPos();
 			ydiff = blue[bdx[i]].getyPos()-red[j].getyPos();
 			dist = sqrt(xdiff*xdiff+ydiff*ydiff);
-			if(dist<d_tols[i]) mem.push_back(j);
+			if(dist<d_tols[i]) 
+			{
+				mem.push_back(j);
+				d_err.push_back(dist);
+			}
 		}
 		
 		//Find indices for vertical alignments (two points)
@@ -574,46 +687,106 @@ vector <TrackingObject> findBeaconFromHues(vector <TrackingObject> red, vector <
 					vdiff=abs(red[mem[k]].getyPos()-red[mem[m]].getyPos());
 					if(vdiff<h_tol)
 					{
-						//Skip duplicate objects (TODO: improve remove duplicates)
-						for(int p=0; p<x_cand.size(); p++)
-						{
-							if(x_cand[p] != red[mem[m]].getxPos() && y_cand[p] != red[mem[m]].getyPos())
-							{
-								x_cand.push_back(red[mem[m]].getxPos());
-                    				y_cand.push_back(red[mem[m]].getyPos());
-							}
-						}
+						////Skip duplicate objects (TODO: improve remove duplicates)
+						//for(int p=0; p<x_cand.size(); p++)
+						//{
+						//	if(x_cand[p] != red[mem[m]].getxPos() && y_cand[p] != red[mem[m]].getyPos())
+						//	{
+						//		x_cand.push_back(red[mem[m]].getxPos());
+                    		//		y_cand.push_back(red[mem[m]].getyPos());
+						//	}
+						//}
 						idx.push_back(mem[m]);
+						red_err.push_back(d_err[m]+vdiff);
 					}
 				}
 			}
 		}
 		
+		//add first red object to index vector
 		idx.push_back(rdx[i]);
+		d_err.push_back(blue_err[i]);
 
 		//Indices for all red candidates for blue i
 		if(idx.size()>2)
 		{
 			for(int o=0; o<idx.size(); o++)
 			{
+				//vector of red coordinates for blue object i
 				x_cand.push_back(red[idx[o]].getxPos());
 				y_cand.push_back(red[idx[o]].getyPos());
+				cand_err.push_back(blue_err[o]);
+			}
+			//vector of coordinate vectors for all possible solutions
+			xx.push_back(x_cand);
+			yy.push_back(y_cand);
+			ee.push_back(cand_err);
+		}
+
+		//Clear temp vectors
+		idx.clear();
+		mem.clear();
+		x_cand.clear();
+		y_cand.clear();
+		cand_err.clear();
+	}
+	
+	cout << "xx.size() = " << xx.size() << endl;
+
+	//Find best guess
+	TrackingObject Solution;
+	vector <TrackingObject> Solutions;
+	float err_sum, err_sump;
+	int smallestError = 1e8;
+	int idx_err;
+	if(xx.size()>1)
+	{
+		for(int i=0; i<xx.size(); i++)
+		{	
+			x_cand=xx[i];
+			y_cand=yy[i];
+			cand_err=ee[i];
+			err_sum = 0;
+			for(int j=0; j<x_cand.size(); j++)
+			{
+				err_sum += cand_err[j];
+				//cout << "cand_err[" << j << "] =" << cand_err[j] << endl;
+			}
+			cout << "err sum = " << err_sum << endl;
+
+			if(err_sum<smallestError)
+			{
+				idx_err=i;
+				smallestError=err_sum;
 			}
 		}
 
-		idx.clear();
-		mem.clear();
+		x_cand=xx[idx_err];
+		y_cand=yy[idx_err];
+		cand_err=ee[idx_err];
+		for(int i=0; i<x_cand.size(); i++)
+		{
+			cout << "cand_err[" << i << "] =" << cand_err[i] << endl;
+			Solution.setxPos(x_cand[i]);
+			Solution.setyPos(y_cand[i]);
+			Solutions.push_back(Solution);
+		}
 	}
-	
-	//Return Solution
-	TrackingObject Solution;
-	vector <TrackingObject> Solutions;
-
-	for(int q=0; q<x_cand.size(); q++)
+	else if(xx.size()==1) //If one solution found okay
 	{
-		Solution.setxPos(x_cand[q]);
-		Solution.setyPos(y_cand[q]);
-		Solutions.push_back(Solution);
+		x_cand=xx[0];
+		y_cand=yy[0];
+		cand_err=ee[0];
+		for(int i=0; i<x_cand.size(); i++)
+		{
+			cout << "cand_err[" << i << "] =" << cand_err[i] << endl;
+			Solution.setxPos(x_cand[i]);
+			Solution.setyPos(y_cand[i]);
+			Solutions.push_back(Solution);
+		}
+	}
+	else
+	{
 	}
 
 	cout << "x_cand.size() = " << x_cand.size() << endl;
@@ -677,12 +850,12 @@ int error;
 
 double xa, xb, xc, ya, yb, yc, S1, S2, S3;
 
-xa = -103.98;
-xb = 103.98;
+xa = -0.85725;
+xb = 0.85725;
 xc = 0;
-ya = (103.98/3)*sqrt(3);
-yb = (103.98/3)*sqrt(3);
-yc = -(2*103.98)/3*sqrt(3);
+ya = 0.52075;
+yb = 0.52075;
+yc = -0.52075;
 S1 = sqrt((xa-xb)*(xa-xb)+(ya-yb)*(ya-yb));
 S2 = sqrt((xb-xc)*(xb-xc)+(yb-yc)*(yb-yc));
 S3 = sqrt((xc-xa)*(xc-xa)+(yc-ya)*(yc-ya));
@@ -762,7 +935,7 @@ while (arma::norm(FX)>1e-8 && count<25 && norm(X0-X)>1e-5)
 	//FX.print("FX ");
 	//cout << arma::norm(FX) << endl;
 
-	if(arma::norm(FX)>1e21) {error=1; break;}
+	if(arma::norm(FX)>1e5) {error=1; break;}
 	else error=0;
 
     X = X-arma::inv(J.st()*J)*J.st()*FX;
@@ -779,7 +952,7 @@ z = X(1);
 double d, gamma;
 d = sqrt(x*x+z*z);
 gamma = atan2(x,z);
-//cout << d << endl;
+cout << d << endl;
 
 	return gamma;
 }

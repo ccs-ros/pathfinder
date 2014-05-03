@@ -129,12 +129,12 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
     else if(inData.vision_state==3) //homing search
     {
     	//red object structure
-    	TrackingObject redBall("Red Ball");
+    	TrackingObject redBall("Red Test");
     	vector <TrackingObject> redBalls; 
     	
 		// Find Red Objects 
-		cv::Mat thresh = filterYUV(cv_ptr->image, redBall.getYUVmin(), redBall.getYUVmax(), 8, 8, 9, THRE_IMAGE); 	
-		redBalls = findCandidates(cv_ptr->image, thresh, redBall.getType(), 50, 8*8, 400*400, HUE_TRACK); 
+		cv::Mat thresh = filterYUV(cv_ptr->image, redBall.getYUVmin(), redBall.getYUVmax(), 5, 8, 9, THRE_IMAGE); 	
+		redBalls = findCandidates(cv_ptr->image, thresh, redBall.getType(), 50, 1*1, 400*400, HUE_TRACK); 
 		
 		if(redBalls.size()>=1) //Found at least three red objects
 		{
@@ -142,14 +142,15 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 			vector <TrackingObject> blueCenters;
 			
     			// Find Blue Objects 
-			cv::Mat thresh = filterYUV(cv_ptr->image, blueCenter.getYUVmin(), blueCenter.getYUVmax(), 8, 8, 9, THRE_IMAGE); 
-			blueCenters = findCandidates(cv_ptr->image, thresh, blueCenter.getType(), 50, 8*8, 400*400, 0); 
+			cv::Mat thresh = filterYUV(cv_ptr->image, blueCenter.getYUVmin(), blueCenter.getYUVmax(), 5, 8, 9, THRE_IMAGE); 
+			blueCenters = findCandidates(cv_ptr->image, thresh, blueCenter.getType(), 50, 1*1, 400*400, 1); 
 			
 			if(blueCenters.size()>=1) //Found at least one blue object
 			{		
 				try 
 				{
-					redBalls = findBeaconFromHues(redBalls, blueCenters);	
+					redBalls = findBeaconFromHues(redBalls, blueCenters);
+					//simpleFindBeaconFromHues(redBalls, blueCenters);		
 				}
 				catch(const std::bad_alloc&) 
 				{
@@ -158,7 +159,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& raw_image)
 
 				if(redBalls.size()==3) 
 				{
-					float B = findHomingBearing(redBalls, 78, 3.67, 640, 480);
+					float B = findHomingBearing(redBalls, 78, 0.00367, 640, 480);
 					cout << "bearing = " << 180/PI*B << endl;
 				}
 				else ROS_WARN("Need exactly 3 objects to calculate bearing!");
