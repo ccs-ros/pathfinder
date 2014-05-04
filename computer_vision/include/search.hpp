@@ -188,8 +188,8 @@ class TrackingObject
 	cv::Scalar getColor() {return Color;}
 	void setColor(cv::Scalar c) {Color = c;}
 	
-	vector<cv::Rect> getCrop() {return boundingRectangle;}
-	void setCrop(vector<cv::Rect> r) {boundingRectangle = r;}
+	cv::Rect getCrop() {return boundingRectangle;}
+	void setCrop(cv::Rect r) {boundingRectangle = r;}
 	
 	private:
 	int xPos, yPos, area, areaObj;
@@ -198,7 +198,7 @@ class TrackingObject
 	cv::Scalar HSVmin, HSVmax;
 	cv::Scalar YUVmin, YUVmax;
 	cv::Scalar Color;
-	vector<cv::Rect> boundingRectangle;
+	cv::Rect boundingRectangle;
 };
 
 //Returns number of circles in frame
@@ -396,7 +396,7 @@ vector <TrackingObject> findCandidates(const cv::Mat &frame, const cv::Mat imgTh
 				Segment.setarea(moment.m00);
 				Segment.setType(Segment.getType());
 				Segment.setColor(Segment.getColor());
-				Segment.setCrop(boundRect);
+				Segment.setCrop(boundRect[i]);
 
 				Segments.push_back(Segment);			
     		}
