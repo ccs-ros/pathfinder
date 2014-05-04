@@ -1,7 +1,7 @@
 <launch>
 	<param name="port_path" 
 		type="str" 
-		value="/dev/ttyS3" />
+		value="/dev/ttyS1" />
 	<param name="node_type" 
 		type="str" 
 		value="mis_nb1_serial_node" />

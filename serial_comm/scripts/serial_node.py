@@ -46,14 +46,13 @@ class Serial_Port:
 				m=self.readChar()
 				#rospy.loginfo("%s %d",m,self.comm.pkt_in.packet.fields.H1)
 				if (len(m) != 0) and (ord(m)==self.comm.pkt_in.packet.fields.H1):
-					rospy.loginfo("Read H1")
+					#rospy.loginfo("Read H1")
 					m=self.readChar()
 					if (len(m) != 0) and (ord(m)==self.comm.pkt_in.packet.fields.H2):
-						rospy.loginfo("Read H2")
+						#rospy.loginfo("Read H2")
 						m=self.readChar()
-						rospy.loginfo(ord(m))
 						if (len(m) != 0) and (ord(m)==self.comm.pkt_in.packet.fields.H3):
-							rospy.loginfo("Read H3")
+							#rospy.loginfo("Read H3")
 							i=3
 							size = len(self.comm.pkt_in.packet.buffer)
 							while i < size:
@@ -65,7 +64,10 @@ class Serial_Port:
 								self.comm.pkt_in.packet.buffer[i] = n
 								i=i+1
 
-							rospy.loginfo("Checksum = %d, valid  = %d",self.comm.pkt_in.packet.fields.checksum, self.comm.pkt_in.valid_checksum())
+							#rospy.loginfo("Checksum = %d, valid  = %d",self.comm.pkt_in.packet.fields.checksum, self.comm.pkt_in.valid_checksum())
+							#rospy.loginfo("%d %d",self.comm.pkt_in.packet.buffer[3],self.comm.pkt_in.packet.buffer[4])
+							#rospy.loginfo(self.comm.pkt_in.packet.buffer[3]*256+self.comm.pkt_in.packet.buffer[4])
+							#rospy.loginfo("Calculated Checksum = %d",self.comm.pkt_in.compute_checksum().value)
 							# transfer data from serial packet to ROS msg and publish
 							if (self.comm.pkt_in.valid_checksum()):
 								self.comm.pkt_in.unpack_buffer2msg()

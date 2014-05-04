@@ -1,13 +1,13 @@
 <launch>
 	<param name="port_path" 
 		type="str" 
-		value="/dev/ttyS3" />
+		value="/dev/ttyS1" />
 	<param name="node_type" 
 		type="str" 
 		value="mis_sib_serial_node" />
 	<param name="rate_Hz" 
 		type="int" 
-		value="50" />
+		value="1" />
 	<node name="mis_sib_serial_node"
         pkg="serial_comm" 
         type="serial_node.py" />

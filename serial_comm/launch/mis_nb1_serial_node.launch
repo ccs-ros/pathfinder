@@ -10,7 +10,5 @@
 		value="50" />
 	<node name="mis_nb1_serial_node"
         pkg="serial_comm" 
-        type="serial_node.py"
-	output="screen"
-	launch-prefix="gnome-terminal -e" />
+        type="serial_node.py" />
 </launch>
