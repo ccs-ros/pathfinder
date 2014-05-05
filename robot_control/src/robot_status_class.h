@@ -18,4 +18,5 @@ public:
 	int beacon_in_range;
 	int beacon_need_re_align;
 	int pause_switch;
+	int grabber_finished;
 };

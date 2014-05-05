@@ -8,6 +8,8 @@
 #include <roboteq_interface/motor_commands.h>
 #include <serial_comm/pkt_7_msg.h>
 #include <serial_comm/pkt_5_msg.h>
+#include <serial_comm/pkt_4_msg.h>
+#include <serial_comm/pkt_6_msg.h>
 #include <navigation/FilterOutput.h>
 #include <computer_vision/Beacon.h>
 
@@ -25,6 +27,7 @@ serial_comm::pkt_7_msg sib_msg_out;
 void sibCallback(const serial_comm::pkt_5_msg::ConstPtr& sib_msg_in);
 void navCallback(const navigation::FilterOutput::ConstPtr& nav_msg_in);
 void visionCallback(const computer_vision::Beacon::ConstPtr& det_msg_in);
+void nb2Callback(const serial_comm::pkt_4_msg::ConstPtr& nb2_msg_in);
 void packMsg();
 
 int main(int argc, char **argv)
@@ -36,10 +39,12 @@ int main(int argc, char **argv)
     // Publisher objects
     ros::Publisher motor_pub = nh.advertise<roboteq_interface::motor_commands>("mis/motor_commands",1);
     ros::Publisher sib_pub = nh.advertise<serial_comm::pkt_7_msg>("mis/sib_out_data",1);
+    ros::Publisher nb2_pub = nh.advertise<serial_comm::pkt_6_msg>("mis/nb2_out_data",1);
     // Subscriber Objects
     ros::Subscriber sib_sub = nh.subscribe<serial_comm::pkt_5_msg>("mis/sib_in_data",1,sibCallback);
     ros::Subscriber nav_sub = nh.subscribe<navigation::FilterOutput>("nav/filter_output",1,navCallback);
     ros::Subscriber vision_sub = nh.subscribe<computer_vision::Beacon>("det/mis_out_data",1,visionCallback);
+    ros::Subscriber nb2_sub = nh.subscribe<serial_comm::pkt_4_msg>("mis/nb2_in_data",1,nb2Callback);
     // Instantiate state machine objects
     Search_Class search;
     Approach_Class approach;
@@ -142,6 +147,11 @@ void visionCallback(const computer_vision::Beacon::ConstPtr& det_msg_in)
 	robot_status.beacon_seen = det_msg_in->beacon;
 	robot_status.object_in_range = det_msg_in->object_in_range;
 	robot_status.beacon_in_range = det_msg_in->beacon_in_range;
+}
+
+void nb2Callback(const serial_comm::pkt_4_msg::ConstPtr& nb2_msg_in)
+{
+//	robot_status->
 }
 
 void packMsg()

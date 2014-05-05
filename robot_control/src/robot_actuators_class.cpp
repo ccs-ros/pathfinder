@@ -322,9 +322,14 @@ int Drive::pivotTrigger(int speed, int CCW, int stop, int conclude, Robot_Status
 	return task_ended;
 }
 
-// Insert grabber functions here****
-
-//***
+int Grabber::grabberState(int state, Robot_Status* robot_status)
+{
+	int return_value;
+	grabber_state = state;
+	if(robot_status->grabber_finished==1) return_value = 1;
+	else return_value = 0;
+	return return_value;
+}
 
 //Gimbal::gimbal_max_angle = 135.0; // Degrees
 //Gimbal::gimbal_min_angle = -135.0; // Degrees

@@ -30,13 +30,12 @@ public:
 	int pivotTrigger(int speed, int CCW, int stop, int conclude, Robot_Status* robot_status);
 };
 
-//class Grabber
-//{
-//public:
-//	// Outputs
-//	uint8_t arms_state; // 1 = down; 0 = up
-//	uint8_t jaws_state; // 1 = closed; 0 = open
-//}
+class Grabber
+{
+public:
+	uint8_t grabber_state; // 1 = up and open; 2 = grab; 3 = deposit
+	int grabberState(int state, Robot_Status* robot_status);
+};
 
 
 class Gimbal
@@ -57,6 +56,6 @@ class Actuators
 {
 public:
 	Drive drive;
-//	Grabber grabber;
+	Grabber grabber;
 	Gimbal gimbal;
 };

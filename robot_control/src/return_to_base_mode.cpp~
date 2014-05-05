@@ -79,7 +79,7 @@ int Return_to_base_Class::run(float desired_heading, Actuators* actuators, Robot
 			break;
 		case 4: // End Mode
 			actuators->drive.stop();
-			actuators->gimbal.rotateGimbal(0.0,0.0,0.0,robot_status);
+			actuators->gimbal.rotateGimbal(0.0,0.0,0.0,1,robot_status);
 			mode_ended = 1;
 			stage = 1;
 			break;

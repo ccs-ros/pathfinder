@@ -30,13 +30,12 @@ public:
 	int pivotTrigger(int speed, int CCW, int stop, int conclude, Robot_Status* robot_status);
 };
 
-//class Grabber
-//{
-//public:
-//	// Outputs
-//	uint8_t arms_state; // 1 = down; 0 = up
-//	uint8_t jaws_state; // 1 = closed; 0 = open
-//}
+class Grabber
+{
+public:
+	uint8_t grabber_state; // 1 = up and open; 2 = grab; 3 = deposit
+	int grabberState(int state, Robot_Status* robot_status);
+}
 
 
 class Gimbal
@@ -47,9 +46,9 @@ public:
 	float pitch_angle; // CCW is positive
 	float roll_angle; // CCW is positive
 	float yaw_angle; // CCW is positive
-	int rotateGimbal(float desired_pitch_angle, float desired_roll_angle, float desired_yaw_angle, Robot_Status* robot_status);
+	int rotateGimbal(float desired_pitch_angle, float desired_roll_angle, float desired_yaw_angle, int conclude, Robot_Status* robot_status);
 	int hold(Robot_Status* robot_status);
-	int scan(int homing_beacon, Robot_Status* robot_status);
+	int scan(int homing_beacon, int conclude, Robot_Status* robot_status);
 };
 
 
@@ -57,6 +56,6 @@ class Actuators
 {
 public:
 	Drive drive;
-//	Grabber grabber;
+	Grabber grabber;
 	Gimbal gimbal;
 };

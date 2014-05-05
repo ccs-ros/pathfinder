@@ -3,6 +3,8 @@
 #include "robot_actuators_class.h"
 #include "return_to_base_mode.h"
 
+const float PI = 3.14159;
+
 float Return_to_base_Class::gimbal_target_yaw_angle = 0.0;
 
 int Return_to_base_Class::drive(int stop, Actuators* actuators, Robot_Status* robot_status)
@@ -60,7 +62,7 @@ int Return_to_base_Class::run(float desired_heading, Actuators* actuators, Robot
 	{
 		case 1: // Scan for homing beacon
 			stage_ended = scan(actuators,robot_status);
-			if(robot_status->beacon_seen==1) gimbal_target_yaw_angle = -robot_status->gimbal_yaw_angle+robot_status->heading;
+			if(robot_status->beacon_seen==1) gimbal_target_yaw_angle = -robot_status->gimbal_yaw_angle+robot_status->heading*180.0/PI;
 			mode_ended = 0;
 			if(stage_ended) stage = 2;
 			else stage = 1;
