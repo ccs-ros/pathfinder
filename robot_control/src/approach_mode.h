@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <math.h>
-#include "robot_actuators_class.h"
 
 class Approach_Class
 {

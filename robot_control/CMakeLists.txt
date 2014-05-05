@@ -115,23 +115,22 @@ include_directories(
 
 # Declare a cpp executable
  add_executable(gimbal_test_node src/gimbal_test_node.cpp)
- add_executable(systems_test_node src/systems_test_node.cpp)
+ #add_executable(systems_test_node src/systems_test_node.cpp)
  add_executable(state_machine_node src/state_machine_node.cpp)
 
 # Add cmake target dependencies of the executable/library
 # as an example, message headers may need to be generated before nodes
  add_dependencies(gimbal_test_node robot_control_generate_messages_cpp)
  add_dependencies(gimbal_test_node ${catkin_EXPORTED_TARGETS})
- add_dependencies(systems_test_node robot_control_generate_messages_cpp)
- add_dependencies(systems_test_node ${catkin_EXPORTED_TARGETS}) 
- 
+ #add_dependencies(systems_test_node robot_control_generate_messages_cpp)
+ #add_dependencies(systems_test_node ${catkin_EXPORTED_TARGETS}) 
  add_dependencies(state_machine_node robot_control_generate_messages_cpp)
  add_dependencies(state_machine_node ${catkin_EXPORTED_TARGETS})
 
 
 # Specify libraries to link a library or executable target against
  target_link_libraries(gimbal_test_node ${catkin_LIBRARIES})
- target_link_libraries(systems_test_node ${catkin_LIBRARIES} robot_actuators_class)
+ #target_link_libraries(systems_test_node ${catkin_LIBRARIES} robot_actuators_class)
  target_link_libraries(state_machine_node ${catkin_LIBRARIES} robot_actuators_class search_mode approach_mode return_to_base_mode)
 
 #############

@@ -7,7 +7,6 @@ enum substates {Init_Task, Exec_Task, End_Task};
 class Drive
 {
 public:
-	const float PI = 3.14159;
 	// Outputs; Range: [-1000,1000] positive is forward, negative is reverse
 	int16_t front_left_motor_speed;
 	int16_t middle_left_motor_speed;
@@ -18,15 +17,17 @@ public:
 	// Tasks
 	int stop(); // Stop all drive motors
 	// Drive straight a distance specified in "desired_distance" while maintaining the initial heading. Positive distance is forward. Speed Range: [0,1000]
-	int driveStraightDist(int speed, float desired_distance, Robot_Status* robot_status);
+	int driveStraightDist(int speed, float desired_distance, int conclude, Robot_Status* robot_status);
 	// Drive straight until stop = 1. Continue while stop = 0. Maintain the initial heading
-	int driveStraightTrigger(int speed, int reverse, int stop, Robot_Status* robot_status);
+	int driveStraightTrigger(int speed, int reverse, int stop, int conclude, Robot_Status* robot_status);
+	// Drive straight until stop = 1. Continue while stop = 0. Maintain the specified heading. reverse = 1, drive in reverse. else, drive forward. Speed Range: [0,1000]
+	int driveStraightTriggerHeading(int speed, int reverse, int stop, float desired_heading, int conclude, Robot_Status* robot_status);
 	// Pivot to a desired absolte heading angle. Positive heading angles are positive. Speed Range: [0,1000]
-	int pivotAbsolute(int speed, float desired_angle, Robot_Status* robot_status);
+	int pivotAbsolute(int speed, float desired_angle, int conclude, Robot_Status* robot_status);
 	// Pivot to a desired delta heading angle. Positive heading angles are positive. Speed Range: [0,1000]
-	int pivotDelta(int speed, float desired_delta_angle, Robot_Status* robot_status);
+	int pivotDelta(int speed, float desired_delta_angle, int conclude, Robot_Status* robot_status);
 	// Pivot until stop = 1. Continue while stop = 0. Speed Range: [0,1000]
-	int pivotTrigger(int speed, int CCW, int stop, Robot_Status* robot_status);
+	int pivotTrigger(int speed, int CCW, int stop, int conclude, Robot_Status* robot_status);
 };
 
 //class Grabber
@@ -46,9 +47,9 @@ public:
 	float pitch_angle; // CCW is positive
 	float roll_angle; // CCW is positive
 	float yaw_angle; // CCW is positive
-	int rotateGimbal(float desired_pitch_angle, float desired_roll_angle, float desired_yaw_angle, Robot_Status* robot_status);
+	int rotateGimbal(float desired_pitch_angle, float desired_roll_angle, float desired_yaw_angle, int conclude, Robot_Status* robot_status);
 	int hold(Robot_Status* robot_status);
-	int scan(int homing_beacon, Robot_Status* robot_status);
+	int scan(int homing_beacon, int conclude, Robot_Status* robot_status);
 };
 
 

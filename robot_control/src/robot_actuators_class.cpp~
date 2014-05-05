@@ -5,6 +5,8 @@
 
 using namespace std;
 
+const float PI = 3.14159;
+
 int Drive::stop() // Stop all drive motors
 {
 	front_left_motor_speed = 0;
@@ -17,7 +19,7 @@ int Drive::stop() // Stop all drive motors
 }
 
 // Drive straight a distance specified in "desired_distance" while maintaining the initial heading. Positive distance is forward. Speed Range: [0,1000]	
-int Drive::driveStraightDist(int speed, float desired_distance, Robot_Status* robot_status)
+int Drive::driveStraightDist(int speed, float desired_distance, int conclude, Robot_Status* robot_status)
 {
 	int left_speed;
 	int right_speed;
@@ -39,7 +41,7 @@ int Drive::driveStraightDist(int speed, float desired_distance, Robot_Status* ro
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 0;
 			task_state = Exec_Task;
@@ -62,17 +64,18 @@ int Drive::driveStraightDist(int speed, float desired_distance, Robot_Status* ro
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
 }
 
 // Drive straight until stop = 1. Continue while stop = 0. Maintain the initial heading. reverse = 1, drive in reverse. else, drive forward. Speed Range: [0,1000]
-int Drive::driveStraightTrigger(int speed, int reverse, int stop, Robot_Status* robot_status)
+int Drive::driveStraightTrigger(int speed, int reverse, int stop, int conclude, Robot_Status* robot_status)
 {
 	int left_speed;
 	int right_speed;
@@ -81,7 +84,7 @@ int Drive::driveStraightTrigger(int speed, int reverse, int stop, Robot_Status* 
 	static substates task_state = Init_Task;
 	static float desired_heading;
 	int task_ended = 0;
-	
+	cout << "DST task state " << task_state << endl;
 	switch(task_state)
 	{
 		case Init_Task:
@@ -92,7 +95,7 @@ int Drive::driveStraightTrigger(int speed, int reverse, int stop, Robot_Status* 
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 0;
 			task_state = Exec_Task;
@@ -115,16 +118,17 @@ int Drive::driveStraightTrigger(int speed, int reverse, int stop, Robot_Status* 
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
 }
 // Drive straight until stop = 1. Continue while stop = 0. Maintain the specified heading. reverse = 1, drive in reverse. else, drive forward. Speed Range: [0,1000]
-int Drive::driveStraightTriggerHeading(int speed, int reverse, int stop, float desired_heading Robot_Status* robot_status)
+int Drive::driveStraightTriggerHeading(int speed, int reverse, int stop, float desired_heading, int conclude, Robot_Status* robot_status)
 {
 	int left_speed;
 	int right_speed;
@@ -142,7 +146,7 @@ int Drive::driveStraightTriggerHeading(int speed, int reverse, int stop, float d
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 0;
 			task_state = Exec_Task;
@@ -165,17 +169,18 @@ int Drive::driveStraightTriggerHeading(int speed, int reverse, int stop, float d
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
 }
 
 // Pivot to a desired absolute heading angle. Positive heading angles are positive. Speed Range: [0,1000]
-int Drive::pivotAbsolute(int speed, float desired_angle, Robot_Status* robot_status)
+int Drive::pivotAbsolute(int speed, float desired_angle, int conclude, Robot_Status* robot_status)
 {
 	static int pivot_sign = 1;
 	static substates task_state = Init_Task;
@@ -190,7 +195,7 @@ int Drive::pivotAbsolute(int speed, float desired_angle, Robot_Status* robot_sta
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 0;
 			task_state = Exec_Task;
@@ -211,17 +216,18 @@ int Drive::pivotAbsolute(int speed, float desired_angle, Robot_Status* robot_sta
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
 }
 
 // Pivot to a desired delta heading angle. Positive heading angles are positive. Speed Range: [0,1000]
-int Drive::pivotDelta(int speed, float desired_delta_angle, Robot_Status* robot_status)
+int Drive::pivotDelta(int speed, float desired_delta_angle, int conclude, Robot_Status* robot_status)
 {
 	static float initial_angle;
 	static int pivot_sign = 1;
@@ -238,7 +244,7 @@ int Drive::pivotDelta(int speed, float desired_delta_angle, Robot_Status* robot_
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 0;
 			task_state = Exec_Task;
@@ -259,17 +265,18 @@ int Drive::pivotDelta(int speed, float desired_delta_angle, Robot_Status* robot_
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
 }
 
 // Pivot until stop = 1. Continue while stop = 0. Speed Range: [0,1000]. CCW = 1, roate counterclockwise. Else, rotate clockwise
-int Drive::pivotTrigger(int speed, int CCW, int stop, Robot_Status* robot_status)
+int Drive::pivotTrigger(int speed, int CCW, int stop, int conclude, Robot_Status* robot_status)
 {
 	static int pivot_sign = 1;
 	static substates task_state = Init_Task;
@@ -284,7 +291,7 @@ int Drive::pivotTrigger(int speed, int CCW, int stop, Robot_Status* robot_status
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 0;
 			task_state = Exec_Task;
@@ -305,10 +312,11 @@ int Drive::pivotTrigger(int speed, int CCW, int stop, Robot_Status* robot_status
 			middle_left_motor_speed = 0;
 			rear_left_motor_speed = 0;
 			front_right_motor_speed = 0;
-			middle_left_motor_speed = 0;
+			middle_right_motor_speed = 0;
 			rear_right_motor_speed = 0;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
@@ -321,7 +329,7 @@ int Drive::pivotTrigger(int speed, int CCW, int stop, Robot_Status* robot_status
 //Gimbal::gimbal_max_angle = 135.0; // Degrees
 //Gimbal::gimbal_min_angle = -135.0; // Degrees
 
-int Gimbal::rotateGimbal(float desired_pitch_angle, float desired_roll_angle, float desired_yaw_angle, Robot_Status* robot_status)
+int Gimbal::rotateGimbal(float desired_pitch_angle, float desired_roll_angle, float desired_yaw_angle, int conclude, Robot_Status* robot_status)
 {
 	static substates task_state = Init_Task;
 	int task_ended = 0;
@@ -348,7 +356,8 @@ int Gimbal::rotateGimbal(float desired_pitch_angle, float desired_roll_angle, fl
 			roll_angle = robot_status->gimbal_roll_angle;
 			yaw_angle = robot_status->gimbal_yaw_angle;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;
@@ -364,7 +373,7 @@ int Gimbal::hold(Robot_Status* robot_status)
 }
 
 // Scan around for a target or the homing beacon. if homing_beacon = 1, look for homing beacon, else look for object
-int Gimbal::scan(int homing_beacon, Robot_Status* robot_status)
+int Gimbal::scan(int homing_beacon, int conclude, Robot_Status* robot_status)
 {
 	static substates task_state = Init_Task;
 	static int scan_step = 1;
@@ -404,7 +413,8 @@ int Gimbal::scan(int homing_beacon, Robot_Status* robot_status)
 			roll_angle = robot_status->gimbal_roll_angle;
 			yaw_angle = robot_status->gimbal_yaw_angle;
 			task_ended = 1;
-			task_state = Init_Task;
+			if(conclude == 1) task_state = Init_Task;
+			else task_state = End_Task;
 			break;
 	}
 	return task_ended;

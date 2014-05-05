@@ -108,7 +108,9 @@ include_directories(
 
 # Declare a cpp library
  add_library(robot_actuators_class src/robot_actuators_class.cpp)
-# add_library(search_mode src/search_mode.cpp)
+ add_library(search_mode src/search_mode.cpp)
+ add_library(approach_mode src/approach_mode.cpp)
+ add_library(return_to_base_mode src/return_to_base_mode.cpp)
  
 
 # Declare a cpp executable

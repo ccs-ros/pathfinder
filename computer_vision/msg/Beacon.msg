@@ -6,6 +6,7 @@ int16 roll
 int16 yaw
 int16 heading
 uint8 object
+uint8 object_in_range
 uint8 object_type
 uint8 object_area
 uint8 object_x
@@ -14,6 +15,7 @@ uint16 centerx
 uint16 centery
 float32 areaobject
 uint8 beacon
+uint8 beacon_in_range
 uint16 beaconx
 uint16 beacony
 float32 areabeacon

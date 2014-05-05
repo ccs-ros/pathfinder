@@ -15,4 +15,6 @@ public:
 	int beacon_seen;
 	int object_in_range;
 	int object_need_re_align;
+	int beacon_in_range;
+	int beacon_need_re_align;
 };
